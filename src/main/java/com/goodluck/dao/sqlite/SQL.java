@@ -5,7 +5,7 @@ import java.util.LinkedList;
 /**
  * A container class consists of SQL and arguments.
  * 
- * @author zf08526
+ * @author zhangfei
  * 
  */
 public final class SQL {
@@ -39,11 +39,11 @@ public final class SQL {
 	public Object[] getBindArgsAsArray(boolean needConvert) {
 		if (bindArgs != null) {
 			if (needConvert) {
-				LinkedList<Object> conveted = new LinkedList<Object>();
+				LinkedList<Object> converted = new LinkedList<>();
 				for (Object arg : bindArgs) {
-					conveted.add(convert2DBValue(arg));
+					converted.add(convertEscapeChar(arg));
 				}
-				return conveted.toArray();
+				return converted.toArray();
 			} else {
 				return bindArgs.toArray();
 			}
@@ -57,7 +57,7 @@ public final class SQL {
 			for (int i = 0; i < bindArgs.size(); i++) {
 				Object value = bindArgs.get(i);
 				if (needConvert) {
-					strings[i] = value == null ? null : convert2DBValue(value).toString();
+					strings[i] = value == null ? null : convertEscapeChar(value).toString();
 				} else {
 					strings[i] = value == null ? null : value.toString();
 				}
@@ -69,16 +69,16 @@ public final class SQL {
 
 	public void addBindArg(Object arg) {
 		if (bindArgs == null) {
-			bindArgs = new LinkedList<Object>();
+			bindArgs = new LinkedList<>();
 		}
 		bindArgs.add(arg);
 	}
 
 	public void addConvertedBindArg(Object arg) {
 		if (bindArgs == null) {
-			bindArgs = new LinkedList<Object>();
+			bindArgs = new LinkedList<>();
 		}
-		bindArgs.add(convert2DBValue(arg));
+		bindArgs.add(convertEscapeChar(arg));
 	}
 
 	public void addBindArgs(Object... bindArgs) {
@@ -88,16 +88,8 @@ public final class SQL {
 			}
 		}
 	}
-
-	/**
-	 * Replace Boolean value as Integer value('1' or '0'); Replace some char
-	 * with escape character, like "'", "/", "[", "]", "%", "&", "_".
-	 * 
-	 * @param value
-	 *            original string
-	 * @return converted string
-	 */
-	public static Object convert2DBValue(Object value) {
+	
+	static Object convertEscapeChar(Object value) {
 		if (value instanceof Boolean) {
 			return Boolean.valueOf(value.toString()) ? 1 : 0;
 		} else if (value instanceof String) {

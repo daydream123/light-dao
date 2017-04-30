@@ -12,7 +12,7 @@ import java.lang.reflect.Field;
  */
 class ReflectTools {
 
-    public static String getColumnName(Field field) {
+    static String getColumnName(Field field) {
         Column column = field.getAnnotation(Column.class);
         if (column == null) {
             throw new SQLiteException("@Column was not defined for field ["
@@ -25,7 +25,7 @@ class ReflectTools {
         return columnName;
     }
 
-    public static <T extends BaseTable> Object getFieldValue(T table, Field field) {
+    static <T extends BaseTable> Object getFieldValue(T table, Field field) {
         try {
             field.setAccessible(true);
             return field.get(table);

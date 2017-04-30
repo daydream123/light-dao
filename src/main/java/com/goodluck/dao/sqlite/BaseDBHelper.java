@@ -16,7 +16,6 @@ import java.util.List;
  * @author zhangfei
  */
 public abstract class BaseDBHelper extends SQLiteOpenHelper {
-    protected Context mContext;
 
     /**
      * Override this method instead of
@@ -27,7 +26,6 @@ public abstract class BaseDBHelper extends SQLiteOpenHelper {
 
     protected BaseDBHelper(Context context, String databaseName, int version) {
         super(context, databaseName, null, version);
-        mContext = context;
         onClassLoad();
     }
 

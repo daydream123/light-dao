@@ -280,7 +280,7 @@ public final class SQLBuilder {
             for (String arg : args) {
                 int index = where.indexOf("?");
                 if (index > 0) {
-                    String convertedArg = SQL.convert2DBValue(arg).toString();
+                    String convertedArg = SQL.convertEscapeChar(arg).toString();
                     where = where.replaceFirst("\\?", convertedArg);
                 }
             }
