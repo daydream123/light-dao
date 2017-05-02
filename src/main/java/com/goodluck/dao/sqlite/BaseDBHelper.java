@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.goodluck.dao.annotation.View;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,31 +17,19 @@ import java.util.List;
  * @author zhangfei
  */
 public abstract class BaseDBHelper extends SQLiteOpenHelper {
+    private List<Class<? extends BaseTable>> mTableClasses = new ArrayList<>();
 
-    /**
-     * Override this method instead of
-     * {@link #onCreate(SQLiteDatabase)}, call
-     * {@link #addTableClass(Class)} to save table classes.
-     */
-    protected abstract void onClassLoad();
+    protected abstract void onClassLoad(List<Class<? extends BaseTable>> tableClasses);
 
     protected BaseDBHelper(Context context, String databaseName, int version) {
         super(context, databaseName, null, version);
-        onClassLoad();
-    }
 
-    protected void addTableClass(Class<? extends BaseTable> tableClass) {
-        TableInfoCache.addMapping(tableClass);
-    }
-
-    protected void addViewClass(Class<? extends BaseView> viewClass) {
-        TableInfoCache.addMapping(viewClass);
+        onClassLoad(mTableClasses);
     }
 
     @Override
     public final void onCreate(SQLiteDatabase db) {
-        List<Class<? extends BaseTable>> tableClasses = TableInfoCache.getTableClasses();
-        for (Class<? extends BaseTable> clazz : tableClasses) {
+        for (Class<? extends BaseTable> clazz : mTableClasses) {
             // ignore class with View annotation
             View tableView = clazz.getAnnotation(View.class);
             if (tableView != null) {

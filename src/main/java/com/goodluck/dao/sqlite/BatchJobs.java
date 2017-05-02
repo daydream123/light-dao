@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 /**
  * A container to contain more than one CRUD jobs, and should be executed by
- * {@link DBUtils#executeBatchJobs(BatchJobs)}.
+ * {@link DBUtils#applyBatchJobs(BatchJobs)}.
  * 
  * @author zf08526
  * 
@@ -15,7 +15,7 @@ public final class BatchJobs {
 	private ArrayList<SQL> batchJobs;
 
 	public BatchJobs() {
-		this.batchJobs = new ArrayList<SQL>();
+		this.batchJobs = new ArrayList<>();
 	}
 
 	public <T extends BaseTable> void addInsertJob(T table) {
@@ -26,9 +26,12 @@ public final class BatchJobs {
 		batchJobs.add(SQLBuilder.buildUpdateSQL(tableClass, id, values));
 	}
 
-	public <T extends BaseTable> void addUpdateJob(Class<T> tableClass, String where, String[] selectionArgs,
-			ContentValues values) {
-		batchJobs.add(SQLBuilder.buildUpdateSQL(tableClass, where, selectionArgs, values));
+	public <T extends BaseTable> void addUpdateJob(Class<T> tableClass, T table) {
+		batchJobs.add(SQLBuilder.buildUpdateSQL(tableClass, table.toContentValues(), BaseTable._ID + "=?", table.id));
+	}
+
+	public <T extends BaseTable> void addUpdateJob(Class<T> tableClass, ContentValues values, String where, Object... whereArgs) {
+		batchJobs.add(SQLBuilder.buildUpdateSQL(tableClass, values, where, whereArgs));
 	}
 
 	public <T extends BaseTable> void addDeleteJob(T table) {
@@ -39,7 +42,7 @@ public final class BatchJobs {
 		batchJobs.add(SQLBuilder.buildDeleteSQL(tableClass, id));
 	}
 
-	public <T extends BaseTable> void addDeleteJob(Class<T> tableClass, String where, String[] whereArgs) {
+	public <T extends BaseTable> void addDeleteJob(Class<T> tableClass, String where, Object... whereArgs) {
 		batchJobs.add(SQLBuilder.buildDeleteSQL(tableClass, where, whereArgs));
 	}
 

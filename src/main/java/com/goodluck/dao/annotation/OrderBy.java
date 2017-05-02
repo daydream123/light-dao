@@ -8,8 +8,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OrderBy {
-    String DESC = "DESC";
-    String ASC = "ASC";
-
-    String sortType() default DESC;
+    String value();
 }

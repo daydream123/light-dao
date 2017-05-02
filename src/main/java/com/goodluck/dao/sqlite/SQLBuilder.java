@@ -13,7 +13,6 @@ import com.goodluck.dao.annotation.Table;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -23,18 +22,17 @@ import java.util.Set;
  * @author zhangfei
  */
 public final class SQLBuilder {
-    private SQLBuilder() {
-    }
+    private SQLBuilder() {}
 
     /**
      * build table create sql
      */
     public static SQL buildTableCreateSQL(Class<? extends BaseTable> tableClass) {
         final StringBuilder buffer = new StringBuilder();
-        String tableName = TableInfoCache.getTableName(tableClass);
+        String tableName = ReflectTools.getTableName(tableClass);
         buffer.append("CREATE TABLE IF NOT EXISTS ").append(tableName);
         buffer.append(" (");
-        Field[] fields = TableInfoCache.getTableClassFields(tableClass);
+        Field[] fields = ReflectTools.getTableClassFields(tableClass);
 
         int index = 0;// no need ", " for last column
         for (Field field : fields) {
@@ -71,7 +69,7 @@ public final class SQLBuilder {
             }
 
             // add 'not null' definition
-            if (column.notNull()) {
+            if (column.notnull()) {
                 buffer.append(" NOT NULL");
             }
 
@@ -105,7 +103,7 @@ public final class SQLBuilder {
         StringBuilder buffer = new StringBuilder();
         SQL sql = new SQL();
         buffer.append("INSERT INTO ");
-        buffer.append(TableInfoCache.getTableName(table.getClass()));
+        buffer.append(ReflectTools.getTableName(table.getClass()));
         buffer.append(" (");
         for (KeyValue<Object> kv : keyValueList) {
             if (BaseTable._ID.equals(kv.key)) {
@@ -138,7 +136,7 @@ public final class SQLBuilder {
             throw new SQLiteException("This table[" + table.getClass().getName() + "]'s id value is not illegal.");
         }
 
-        return new SQL("DELETE FROM " + TableInfoCache.getTableName(table.getClass()) + " WHERE " + BaseTable._ID + "=" + table.id);
+        return new SQL("DELETE FROM " + ReflectTools.getTableName(table.getClass()) + " WHERE " + BaseTable._ID + "=" + table.id);
     }
 
     /**
@@ -149,17 +147,17 @@ public final class SQLBuilder {
             throw new SQLiteException("The record with id '(" + id +")' is not exist.");
         }
 
-        return new SQL("DELETE FROM " + TableInfoCache.getTableName(tableClass) + " WHERE " + BaseTable._ID + "=" + id);
+        return new SQL("DELETE FROM " + ReflectTools.getTableName(tableClass) + " WHERE " + BaseTable._ID + "=" + id);
     }
 
     /**
      * build delete sql with selection and args
      */
     public static <T extends BaseTable> SQL buildDeleteSQL(Class<T> tableClass, String where,
-                                                           String[] selectionArgs) {
-        StringBuilder buffer = new StringBuilder("DELETE FROM " + TableInfoCache.getTableName(tableClass));
+                                                           Object... whereArgs) {
+        StringBuilder buffer = new StringBuilder("DELETE FROM " + ReflectTools.getTableName(tableClass));
         if (where != null && where.length() > 0) {
-            buffer.append(" WHERE ").append(buildWhere(where, selectionArgs));
+            buffer.append(" WHERE ").append(buildWhere(where, whereArgs));
         }
         return new SQL(buffer.toString());
     }
@@ -172,7 +170,7 @@ public final class SQLBuilder {
             throw new SQLException("ContentValues is empty, nothing will be update.");
         }
 
-        String tableName = TableInfoCache.getTableName(tableClass);
+        String tableName = ReflectTools.getTableName(tableClass);
         if (id == BaseTable.NOT_SAVED) {
             throw new SQLiteException("This table [" + tableName + "]'s id value is null");
         }
@@ -197,15 +195,15 @@ public final class SQLBuilder {
     /**
      * build update sql with selection and args
      */
-    public static <T extends BaseTable> SQL buildUpdateSQL(Class<T> tableClass, String where,
-                                                           String[] selectionArgs, ContentValues values) {
+    public static <T extends BaseTable> SQL buildUpdateSQL(Class<T> tableClass, ContentValues values,
+                                                           String where, Object... whereArgs) {
         if (values == null || values.size() == 0) {
             throw new SQLException("ContentValues is empty, nothing will be update.");
         }
 
         SQL result = new SQL();
         StringBuilder buffer = new StringBuilder("UPDATE ");
-        buffer.append(TableInfoCache.getTableName(tableClass));
+        buffer.append(ReflectTools.getTableName(tableClass));
         buffer.append(" SET ");
         Set<String> keys = values.keySet();
         for (String columnName : keys) {
@@ -214,7 +212,7 @@ public final class SQLBuilder {
         }
         buffer.deleteCharAt(buffer.length() - 1);
         if (where != null && where.length() > 0) {
-            buffer.append(" WHERE ").append(buildWhere(where, selectionArgs));
+            buffer.append(" WHERE ").append(buildWhere(where, whereArgs));
         }
 
         result.setSql(buffer.toString());
@@ -227,11 +225,7 @@ public final class SQLBuilder {
         if (!TextUtils.isEmpty(key)) {
             Object value = ReflectTools.getFieldValue(table, field);
             if (value == null) {
-                if (column.notNull()) {
-                    throw new SQLiteException("field (" + column.name() + ")'s value cannot be null");
-                } else {
-                    value = getDefaultValueOfField(field.getType());
-                }
+                value = getDefaultValueOfField(field.getType());
             }
             keyValue = new KeyValue<>(key, value);
         }
@@ -260,7 +254,7 @@ public final class SQLBuilder {
 
     private static <T extends BaseTable> ArrayList<KeyValue<Object>> table2KeyValueList(T table) {
         ArrayList<KeyValue<Object>> keyValueList = new ArrayList<KeyValue<Object>>();
-        Field[] fields = TableInfoCache.getTableClassFields(table.getClass());
+        Field[] fields = ReflectTools.getTableClassFields(table.getClass());
 
         for (Field field : fields) {
             Column column = field.getAnnotation(Column.class);
@@ -274,10 +268,9 @@ public final class SQLBuilder {
         return keyValueList;
     }
 
-    private static String buildWhere(String where, String[] whereArgs) {
+    private static String buildWhere(String where, Object[] whereArgs) {
         if (whereArgs != null && whereArgs.length > 0) {
-            List<String> args = Arrays.asList(whereArgs);
-            for (String arg : args) {
+            for (Object arg : whereArgs) {
                 int index = where.indexOf("?");
                 if (index > 0) {
                     String convertedArg = SQL.convertEscapeChar(arg).toString();
