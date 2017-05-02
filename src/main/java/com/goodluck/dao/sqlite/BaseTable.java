@@ -39,9 +39,9 @@ public abstract class BaseTable implements Serializable {
 	/**
 	 * Write the Content into a ContentValues container
 	 */
-	ContentValues toContentValues() {
+	public ContentValues toContentValues() {
 		ContentValues values = new ContentValues();
-		Field[] fields = TableInfoCache.getTableClassFields(getClass());
+		Field[] fields = ReflectTools.getTableClassFields(getClass());
 
 		for (Field field : fields) {
 			Column column = field.getAnnotation(Column.class);
@@ -68,8 +68,9 @@ public abstract class BaseTable implements Serializable {
 
 			try {
 				// put field value into ContentValues which is not null
-				if (field.get(this) != null) {
-					putValue(values, columnName, field);
+				Object value = field.get(this);
+				if (value != null) {
+					values.put(columnName, value.toString());
 				}
 			} catch (IllegalAccessException e) {
 				throw new SQLiteException("IllegalAccessException:" + e.getMessage());
@@ -80,32 +81,11 @@ public abstract class BaseTable implements Serializable {
 		return values;
 	}
 
-	private void putValue(ContentValues values, String columnName, Field field) throws IllegalAccessException {
-		Class<?> typeClass = field.getType();
-		if (typeClass == Integer.class || typeClass == int.class) {
-			values.put(columnName,  field.getInt(this));
-		} else if (typeClass == Short.class || typeClass == short.class) {
-			values.put(columnName,  field.getShort(this));
-		} else if (typeClass == Double.class || typeClass == double.class) {
-			values.put(columnName,  field.getDouble(this));
-		} else if (typeClass == Float.class || typeClass == float.class) {
-			values.put(columnName,  field.getFloat(this));
-		} else if (typeClass == Long.class || typeClass == long.class) {
-			values.put(columnName,  field.getLong(this));
-		} else if (typeClass == Boolean.class || typeClass == boolean.class) {
-			values.put(columnName,  field.getBoolean(this));
-		} else if (typeClass == String.class) {
-			values.put(columnName,  field.get(this).toString());
-		} else if (typeClass == Byte[].class || typeClass == byte[].class) {
-			values.put(columnName,  field.getByte(this));
-		}
-	}
-
 	/**
 	 * Read the Content from a ContentCursor.
 	 */
 	void restore(Cursor cursor) {
-		Field[] fields = TableInfoCache.getTableClassFields(getClass());
+		Field[] fields = ReflectTools.getTableClassFields(getClass());
 		for (Field field : fields) {
 			Column column = field.getAnnotation(Column.class);
 			if (column == null) {

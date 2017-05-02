@@ -33,7 +33,7 @@ public class ConditionBuilder<T extends BaseTable> {
         this.tableClass = tableClass;
     }
 
-    static <T extends BaseTable> ConditionBuilder<T> create(SQLiteDatabase database, Class<T> tableClass){
+    static <T extends BaseTable> ConditionBuilder<T> create(SQLiteDatabase database, Class<T> tableClass) {
         if (database == null) {
             throw new SQLException("database cannot be null in ConditionBuilder");
         }
@@ -44,31 +44,49 @@ public class ConditionBuilder<T extends BaseTable> {
         return new ConditionBuilder<>(database, tableClass);
     }
 
-    public ConditionBuilder withColumns(String[] columns){
+    public ConditionBuilder<T> withColumns(String[] columns) {
         this.columns = columns;
         return this;
     }
 
-    public ConditionBuilder withWhere(String whereClause, String[] whereArgs){
+    public ConditionBuilder<T> withWhere(String whereClause, Object... whereArgs) {
         this.whereClause = whereClause;
-        this.whereArgs = whereArgs;
+        this.whereArgs = new String[whereArgs.length];
+
+        for (int i = 0; i < whereArgs.length; i++) {
+            Object arg = whereArgs[i];
+
+            if (arg instanceof String
+                    || arg instanceof Integer
+                    || arg instanceof Long
+                    || arg instanceof Float
+                    || arg instanceof Double) {
+                this.whereArgs[i] = arg.toString();
+            } else if (arg instanceof Boolean) {
+                this.whereArgs[i] = Boolean.valueOf(arg.toString()) ? "1" : "0";
+            } else {
+                throw new SQLException(arg.toString() + " is not supported as where argument in SQLITE");
+            }
+        }
+
         return this;
     }
 
-    public T findById(long id) {
+    public T applyFindById(long id) {
         this.whereClause = BaseTable._ID + "=?";
         this.whereArgs = new String[]{String.valueOf(id)};
 
-        return applyFindFirst();
+        return applySearchFirst();
     }
 
-    public int applyCount(){
+    public int applyCount() {
         this.columns = BaseTable.COUNT_COLUMNS;
 
         Cursor c = applySearch();
         if (c == null) {
             throw new SQLiteException("Cannot create cursor object, database or columns may have error...");
         }
+
         try {
             if (c.moveToFirst()) {
                 return c.getInt(0);
@@ -80,49 +98,60 @@ public class ConditionBuilder<T extends BaseTable> {
         }
     }
 
-    public ConditionBuilder withGroupBy(String groupBy) {
+    public ConditionBuilder<T> withGroupBy(String groupBy) {
         this.groupBy = groupBy;
         return this;
     }
 
-    public ConditionBuilder withHaving(String having) {
+    public ConditionBuilder<T> withHaving(String having) {
         this.having = having;
         return this;
     }
 
-    public ConditionBuilder withOrderBy(String orderBy){
+    public ConditionBuilder<T> withOrderBy(String orderBy) {
         this.orderBy = orderBy;
         return this;
     }
 
-    public ConditionBuilder withLimit(int limitOffset, int limitSize){
+    public ConditionBuilder<T> withLimit(int limitOffset, int limitSize) {
         this.limitOffset = limitOffset;
         this.limitSize = limitSize;
         return this;
     }
 
-    public ConditionBuilder withDistinct(boolean distinct) {
+    public ConditionBuilder<T> withDistinct(boolean distinct) {
         this.distinct = distinct;
         return this;
     }
 
-    public Cursor applySearch(){
+    /**
+     * Apply search and return cursor as result
+     *
+     * @return query cursor
+     */
+    public Cursor applySearch() {
         String limit = null;
         if (limitOffset != null && limitSize != null) {
             limit = limitOffset + "," + limitSize;
         }
 
         if (TextUtils.isEmpty(orderBy)) {
-            orderBy = TableInfoCache.getDefaultOrderBy(tableClass);
+            orderBy = ReflectTools.getDefaultOrderBy(tableClass);
         }
 
-        String tableName = TableInfoCache.getTableName(tableClass);
-        String query = SQLiteQueryBuilder.buildQueryString(distinct,
-                tableName, columns, whereClause, groupBy, having, orderBy, limit);
+        String tableName = ReflectTools.getTableName(tableClass);
+        String query = SQLiteQueryBuilder.buildQueryString(
+                distinct, tableName, columns, whereClause,
+                groupBy, having, orderBy, limit);
         return database.rawQuery(query, whereArgs);
     }
 
-    public List<T> applyFind(){
+    /**
+     * Apply search with condition and return list as result
+     *
+     * @return list of table class object as result
+     */
+    public List<T> applySearchAsList() {
         Cursor c = applySearch();
         List<T> entities = new ArrayList<>();
         try {
@@ -138,7 +167,12 @@ public class ConditionBuilder<T extends BaseTable> {
         return entities;
     }
 
-    public T applyFindFirst(){
+    /**
+     * Apply search first row with condition
+     *
+     * @return first item of result
+     */
+    public T applySearchFirst() {
         Cursor c = applySearch();
 
         if (c == null) {
@@ -170,47 +204,76 @@ public class ConditionBuilder<T extends BaseTable> {
         return null;
     }
 
-    public int applyDelete(){
-        String tableName = TableInfoCache.getTableName(tableClass);
+    /**
+     * Apply delete with condition
+     *
+     * @return count of delete rows
+     */
+    public int applyDelete() {
+        String tableName = ReflectTools.getTableName(tableClass);
         int count = database.delete(tableName, whereClause, whereArgs);
         if (TextUtils.isEmpty(whereClause)) {
-            resetPrimaryKeyWhenRequired(tableName);
+            resetPrimaryKeyIfNeed(tableName);
         }
         return count;
     }
 
+    /**
+     * Apply delete table record
+     *
+     * @param table table object
+     * @return count of deleted row
+     */
     public int applyDelete(T table) {
         return applyDeleteById(table.id);
     }
 
-    public int applyDeleteById(long id){
+    /**
+     * Apply delete with id
+     *
+     * @param id primary key id of record
+     * @return count of deleted row
+     */
+    public int applyDeleteById(long id) {
         if (id == BaseTable.NOT_SAVED) {
             return 0;
         }
 
-        this.whereClause = BaseTable._ID + "=?";
+        this.whereClause = BaseTable._ID + " = ?";
         this.whereArgs = new String[]{String.valueOf(id)};
 
-        checkModifiable(tableClass, "applyDelete");
+        checkModifiable(tableClass, "applyDeleteById");
         return applyDelete();
     }
 
+    /**
+     * Apply update record with condition
+     *
+     * @param values content values to be updated
+     * @return count of updated rows
+     */
     public int applyUpdate(ContentValues values) {
         if (values == null || values.size() == 0) {
             throw new SQLiteException("ContentValues is empty, nothing can be updated");
         }
 
-        String tableName = TableInfoCache.getTableName(tableClass);
+        String tableName = ReflectTools.getTableName(tableClass);
         checkModifiable(tableClass, "applyUpdate");
         return database.update(tableName, values, whereClause, whereArgs);
     }
 
+    /**
+     * Apply update with table object
+     *
+     * @param table table object to update
+     * @return count of updated row
+     */
     public int applyUpdate(T table) {
         if (table == null) {
             throw new SQLException("table to update cannot be null");
         }
 
-        this.whereClause = BaseTable._ID + "=?";
+        this.whereClause = BaseTable._ID + " = ?";
         this.whereArgs = new String[]{String.valueOf(table.id)};
         ContentValues values = table.toContentValues();
         return applyUpdate(values);
@@ -221,20 +284,20 @@ public class ConditionBuilder<T extends BaseTable> {
      *
      * @param tableName table's name
      */
-    private void resetPrimaryKeyWhenRequired(String tableName){
+    private void resetPrimaryKeyIfNeed(String tableName) {
         if (TextUtils.isEmpty(tableName)) {
             return;
         }
 
-        long maxLimit = Long.MAX_VALUE /4 * 3;
+        long maxLimit = Long.MAX_VALUE / 4 * 3;
         Cursor cursor = null;
         try {
-            cursor = database.rawQuery("SELECT * FROM sqlite_sequence WHERE name == ?", new String[]{tableName});
+            cursor = database.rawQuery("SELECT * FROM sqlite_sequence WHERE name = ?", new String[]{tableName});
             if (cursor != null && cursor.moveToNext()) {
                 long seq = cursor.getLong(1);
 
                 if (seq > maxLimit) {
-                    database.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name == ?", new String[]{tableName});
+                    database.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name = ?", new String[]{tableName});
                 }
             }
         } catch (Exception e) {
@@ -248,13 +311,14 @@ public class ConditionBuilder<T extends BaseTable> {
 
     /**
      * As we all known Table View is only used to search, its record cannot be updated or deleted.
+     *
      * @param tableClass table class
-     * @param operation string flag
+     * @param actionDesc string flag
      */
-    private void checkModifiable(Class<? extends BaseTable> tableClass, String operation){
+    private void checkModifiable(Class<? extends BaseTable> tableClass, String actionDesc) {
         try {
-            if (!tableClass.newInstance().isTable()){
-                throw new SQLiteException("Failed to " + operation + " [" + tableClass.getSimpleName()
+            if (!tableClass.newInstance().isTable()) {
+                throw new SQLiteException("Failed to " + actionDesc + " [" + tableClass.getSimpleName()
                         + "], since it is table view not table.");
             }
         } catch (InstantiationException e) {
