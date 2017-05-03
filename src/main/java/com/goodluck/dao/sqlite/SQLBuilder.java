@@ -249,6 +249,8 @@ public final class SQLBuilder {
             return false;
         } else if (typeClass == String.class) {
             return "";
+        } else if (typeClass == byte[].class || typeClass == Byte[].class){
+            return new byte[0];
         } else {
             throw new SQLiteException("type [" + typeClass.toString() + "] is not supported in SQLITE");
         }
@@ -309,9 +311,11 @@ public final class SQLBuilder {
                 && typeClass != long.class
                 && typeClass != Boolean.class
                 && typeClass != boolean.class
-                && typeClass != String.class) {
+                && typeClass != String.class
+                && typeClass != byte[].class
+                && typeClass != Byte[].class) {
             throw new SQLiteException(field.getName() + " in " + tableName
-                    + " is not supported because only primary type is support in SQLITE");
+                    + " is not in supported data type in SQLITE");
         }
     }
 }

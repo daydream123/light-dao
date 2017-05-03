@@ -92,6 +92,7 @@ public class ExampleInstrumentedTest {
     public void testUpdate(){
         ContentValues values = new ContentValues();
         values.put(Student.COLUMN_NAME, "hello baby");
+
         int count = DBHelper.with(mContext)
                 .withTable(Student.class)
                 .withWhere(Student.COLUMN_AGE + "<?", 5)

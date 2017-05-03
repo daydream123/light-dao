@@ -19,18 +19,6 @@ import java.util.List;
  */
 class ReflectTools {
 
-    interface DataType {
-        String NULL = "NULL";
-
-        String INTEGER = "INTEGER";
-
-        String BLOB = "BLOB";
-
-        String TEXT = "TEXT";
-
-        String REAL = "REAL";
-    }
-
     static <T extends BaseTable> String getTableName(Class<T> tableClass) {
         Table table = tableClass.getAnnotation(Table.class);
         View view = tableClass.getAnnotation(View.class);
@@ -102,6 +90,18 @@ class ReflectTools {
         totalFields.removeAll(fieldsToRemove);
 
         return totalFields.toArray(new Field[totalFields.size()]);
+    }
+
+    interface DataType {
+        String NULL = "NULL";
+
+        String INTEGER = "INTEGER";
+
+        String BLOB = "BLOB";
+
+        String TEXT = "TEXT";
+
+        String REAL = "REAL";
     }
 
     static String getDataTypeByField(Field field) {

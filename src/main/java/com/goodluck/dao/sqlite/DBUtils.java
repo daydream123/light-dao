@@ -3,6 +3,7 @@ package com.goodluck.dao.sqlite;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
  * @author zf08526
  */
 public final class DBUtils {
+    private static final String TAG = "DBUtils";
     private SQLiteDatabase database;
     private BaseDBHelper dbHelper;
 
@@ -85,7 +87,7 @@ public final class DBUtils {
             db.setTransactionSuccessful();
             return tables.size();
         } catch (SQLiteException e) {
-            e.printStackTrace();
+            Log.e(TAG, "saveAll() error: " + e.getMessage());
             return 0;
         } finally {
             db.endTransaction();

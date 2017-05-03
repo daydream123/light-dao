@@ -21,7 +21,7 @@ public class DBHelper extends BaseDBHelper {
     private static DBHelper mSingleton;
 
     private DBHelper(Context context) {
-        super(context, "school", 1);
+        super(context, "school.db", 1);
     }
 
     private static DBHelper getSingleton(Context context) {

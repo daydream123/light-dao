@@ -123,7 +123,7 @@ public abstract class BaseTable implements Serializable {
 			} else if (dataTypeClass == Byte[].class || dataTypeClass == byte[].class) {
 				field.set(tableObj, cursor.getBlob(columnIndex));
 			} else {
-				throw new SQLiteException("Field [" + field.getName() + "] is not primitive data type.");
+				throw new SQLiteException("Field [" + field.getName() + "] is not supported.");
 			}
 		} catch (IllegalAccessException e) {
 			throw new SQLiteException("IllegalAccessException:" + e.getMessage());
