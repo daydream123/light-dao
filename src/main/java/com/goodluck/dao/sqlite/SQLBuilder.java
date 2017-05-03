@@ -10,6 +10,7 @@ import com.goodluck.dao.annotation.Foreign;
 import com.goodluck.dao.annotation.ID;
 import com.goodluck.dao.annotation.Table;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -316,6 +317,16 @@ public final class SQLBuilder {
                 && typeClass != Byte[].class) {
             throw new SQLiteException(field.getName() + " in " + tableName
                     + " is not in supported data type in SQLITE");
+        }
+    }
+
+    private static class KeyValue<T> implements Serializable {
+        final String key;
+        final T value;
+
+        KeyValue(String key, T value) {
+            this.key = key;
+            this.value = value;
         }
     }
 }

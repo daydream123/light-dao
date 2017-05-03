@@ -44,7 +44,7 @@ public class ConditionBuilder<T extends BaseTable> {
         return new ConditionBuilder<>(database, tableClass);
     }
 
-    public ConditionBuilder<T> withColumns(String[] columns) {
+    public ConditionBuilder<T> withColumns(String... columns) {
         this.columns = columns;
         return this;
     }
@@ -194,7 +194,7 @@ public class ConditionBuilder<T extends BaseTable> {
         try {
             T content = tableClass.newInstance();
             content.id = cursor.getLong(0);
-            content.restore(cursor);
+            content.restore(cursor, columns);
             return content;
         } catch (IllegalAccessException e) {
             e.printStackTrace();

@@ -11,6 +11,9 @@ import com.goodluck.dao.annotation.Table;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * All table class must extends it so that DBUtils control them.
@@ -84,7 +87,14 @@ public abstract class BaseTable implements Serializable {
 	/**
 	 * Read the Content from a ContentCursor.
 	 */
-	void restore(Cursor cursor) {
+	void restore(Cursor cursor, String[] columns) {
+		List<String> columnList = new ArrayList<>();
+		if (columns != null) {
+			columnList = Arrays.asList(columns);
+		} else {
+			columnList = new ArrayList<>();
+		}
+
 		Field[] fields = ReflectTools.getTableClassFields(getClass());
 		for (Field field : fields) {
 			Column column = field.getAnnotation(Column.class);
@@ -97,7 +107,10 @@ public abstract class BaseTable implements Serializable {
 				columnName = field.getName();
 			}
 
-			setField(field, this, cursor, columnName);
+			// set field value
+			if (columnList.isEmpty() || columnList.contains(columnName)) {
+				setField(field, this, cursor, columnName);
+			}
 		}
 	}
 
