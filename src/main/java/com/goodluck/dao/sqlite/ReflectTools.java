@@ -19,6 +19,18 @@ import java.util.List;
  */
 class ReflectTools {
 
+    interface DataType {
+        String NULL = "NULL";
+
+        String INTEGER = "INTEGER";
+
+        String BLOB = "BLOB";
+
+        String TEXT = "TEXT";
+
+        String REAL = "REAL";
+    }
+
     static <T extends BaseTable> String getTableName(Class<T> tableClass) {
         Table table = tableClass.getAnnotation(Table.class);
         View view = tableClass.getAnnotation(View.class);
@@ -90,5 +102,30 @@ class ReflectTools {
         totalFields.removeAll(fieldsToRemove);
 
         return totalFields.toArray(new Field[totalFields.size()]);
+    }
+
+    static String getDataTypeByField(Field field) {
+        Class<?> dataTypeClass = field.getType();
+
+        // all number type will be treat as INTEGER in sqlite3
+        if ((dataTypeClass == Integer.class || dataTypeClass == int.class)) {
+            return DataType.INTEGER;
+        } else if (dataTypeClass == Long.class || dataTypeClass == long.class) {
+            return DataType.INTEGER;
+        } else if (dataTypeClass == String.class) {
+            return DataType.TEXT;
+        } else if (dataTypeClass == Short.class || dataTypeClass == short.class) {
+            return DataType.INTEGER;
+        } else if (dataTypeClass == Double.class || dataTypeClass == double.class) {
+            return DataType.REAL;
+        } else if (dataTypeClass == Float.class || dataTypeClass == float.class) {
+            return DataType.REAL;
+        } else if (dataTypeClass == Boolean.class || dataTypeClass == boolean.class) {
+            return DataType.INTEGER;
+        } else if (dataTypeClass == Byte[].class || dataTypeClass == byte[].class){
+            return DataType.BLOB;
+        }else {
+            throw new SQLiteException("field [" + field.getName() + "] is not supported data type.");
+        }
     }
 }

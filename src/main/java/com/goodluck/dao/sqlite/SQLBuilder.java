@@ -5,7 +5,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
 
-import com.goodluck.dao.DataType;
 import com.goodluck.dao.annotation.Column;
 import com.goodluck.dao.annotation.Foreign;
 import com.goodluck.dao.annotation.ID;
@@ -50,7 +49,7 @@ public final class SQLBuilder {
             validateFieldType(field, tableName);
 
             // add column name and type definition
-            String columnType = DataType.getDataTypeByField(field);
+            String columnType = ReflectTools.getDataTypeByField(field);
             buffer.append(columnName).append(" ").append(columnType);
 
             // add id definition if it was id column
