@@ -15,7 +15,7 @@ import java.util.List;
  * Created by zhangfei on 2017/4/29.
  */
 public class ConditionBuilder<T extends BaseTable> {
-    private SQLiteDatabase database;
+    private final SQLiteDatabase database;
 
     private Class<T> tableClass;
     private String[] columns;
@@ -28,20 +28,13 @@ public class ConditionBuilder<T extends BaseTable> {
     private Integer limitSize;
     private boolean distinct;
 
-    private ConditionBuilder(SQLiteDatabase database, Class<T> tableClass) {
+    public ConditionBuilder(SQLiteDatabase database) {
         this.database = database;
-        this.tableClass = tableClass;
     }
 
-    static <T extends BaseTable> ConditionBuilder<T> create(SQLiteDatabase database, Class<T> tableClass) {
-        if (database == null) {
-            throw new SQLException("database cannot be null in ConditionBuilder");
-        }
-
-        if (tableClass == null) {
-            throw new SQLException("tableClass cannot be null in ConditionBuilder");
-        }
-        return new ConditionBuilder<>(database, tableClass);
+    public ConditionBuilder<T> withTable(Class<T> tableClass) {
+        this.tableClass = tableClass;
+        return this;
     }
 
     public ConditionBuilder<T> withColumns(String... columns) {
@@ -72,7 +65,7 @@ public class ConditionBuilder<T extends BaseTable> {
         return this;
     }
 
-    public T applyFindById(long id) {
+    public T applySearchById(long id) {
         this.whereClause = BaseTable._ID + "=?";
         this.whereArgs = new String[]{String.valueOf(id)};
 

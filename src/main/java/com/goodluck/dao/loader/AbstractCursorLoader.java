@@ -7,7 +7,7 @@ import android.os.Build;
 import android.support.v4.content.AsyncTaskLoader;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-abstract public class AbstractCursorLoader extends AsyncTaskLoader<Cursor> {
+public abstract class AbstractCursorLoader extends AsyncTaskLoader<Cursor> {
     protected abstract Cursor buildCursor();
 
     private Cursor lastCursor = null;

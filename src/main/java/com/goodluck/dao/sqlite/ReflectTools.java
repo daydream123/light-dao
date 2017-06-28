@@ -12,27 +12,36 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zhangfei on 2017/4/29.
  */
 class ReflectTools {
+    private static Map<Class<? extends BaseTable>, String> classTableNameCache = new HashMap<>();
+    private static Map<Class<? extends BaseTable>, Field[]> classFieldsCache = new HashMap<>();
 
     static <T extends BaseTable> String getTableName(Class<T> tableClass) {
-        Table table = tableClass.getAnnotation(Table.class);
-        View view = tableClass.getAnnotation(View.class);
-        if (table == null && view == null) {
-            throw new SQLiteException(
-                    "Neither Table annotation nor View are not defined on ["
-                            + tableClass.getSimpleName() + "]");
-        }
+        String tableName = classTableNameCache.get(tableClass);
+        if (TextUtils.isEmpty(tableName)) {
+            Table table = tableClass.getAnnotation(Table.class);
+            View view = tableClass.getAnnotation(View.class);
+            if (table == null && view == null) {
+                throw new SQLiteException(
+                        "Neither Table annotation nor View are not defined on ["
+                                + tableClass.getSimpleName() + "]");
+            }
 
-        if (table != null) {
-            return table.value();
-        } else {
-            return view.value();
+            if (table != null) {
+                tableName = table.value();
+            } else {
+                tableName = view.value();
+            }
+            classTableNameCache.put(tableClass, tableName);
         }
+        return tableName;
     }
 
     static <T extends BaseTable> String getDefaultOrderBy(Class<T> tableClass){
@@ -67,29 +76,34 @@ class ReflectTools {
     }
 
     static Field[] getTableClassFields(Class<? extends BaseTable> tableClass) {
-        List<Field> totalFields = new ArrayList<>();
-        Field[] tableClassFields = tableClass.getDeclaredFields();
-        totalFields.addAll(Arrays.asList(tableClassFields));
+        Field[] fields = classFieldsCache.get(tableClass);
+        if (fields == null) {
+            List<Field> totalFields = new ArrayList<>();
+            Field[] tableClassFields = tableClass.getDeclaredFields();
+            totalFields.addAll(Arrays.asList(tableClassFields));
 
-        // cache fields and return
-        String objectClassStr = Object.class.toString();
-        Class<?> superClass = tableClass.getSuperclass();
-        while (superClass != null && !superClass.toString().equals(objectClassStr)) {
-            Field[] superClassFields = superClass.getDeclaredFields();
-            totalFields.addAll(0, Arrays.asList(superClassFields));
-            superClass = superClass.getSuperclass();
-        }
-
-        // filter out static fields which are not table field
-        List<Field> fieldsToRemove = new ArrayList<>();
-        for (Field field : totalFields) {
-            if (Modifier.isStatic(field.getModifiers())) {
-                fieldsToRemove.add(field);
+            // cache fields and return
+            String objectClassStr = Object.class.toString();
+            Class<?> superClass = tableClass.getSuperclass();
+            while (superClass != null && !superClass.toString().equals(objectClassStr)) {
+                Field[] superClassFields = superClass.getDeclaredFields();
+                totalFields.addAll(0, Arrays.asList(superClassFields));
+                superClass = superClass.getSuperclass();
             }
-        }
-        totalFields.removeAll(fieldsToRemove);
 
-        return totalFields.toArray(new Field[totalFields.size()]);
+            // filter out static fields which are not table field
+            List<Field> fieldsToRemove = new ArrayList<>();
+            for (Field field : totalFields) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    fieldsToRemove.add(field);
+                }
+            }
+            totalFields.removeAll(fieldsToRemove);
+
+            fields = totalFields.toArray(new Field[totalFields.size()]);
+            classFieldsCache.put(tableClass, fields);
+        }
+        return fields;
     }
 
     interface DataType {

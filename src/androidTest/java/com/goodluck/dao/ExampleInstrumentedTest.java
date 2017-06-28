@@ -67,7 +67,7 @@ public class ExampleInstrumentedTest {
     public void testSearchById() {
         Student student = DBHelper.with(mContext)
                 .withTable(Student.class)
-                .applyFindById(1);
+                .applySearchById(1);
         assertTrue(student != null);
     }
 
@@ -103,7 +103,7 @@ public class ExampleInstrumentedTest {
     @Test
     public void testUpdateTable() {
         DBUtils dbUtils = DBHelper.with(mContext);
-        Student student = dbUtils.withTable(Student.class).applyFindById(1);
+        Student student = dbUtils.withTable(Student.class).applySearchById(1);
         assertTrue(student != null);
 
         student.name = "testUpdateTable";
@@ -120,7 +120,7 @@ public class ExampleInstrumentedTest {
     @Test
     public void testDeleteByObject(){
         DBUtils dbUtils = DBHelper.with(mContext);
-        Student student = dbUtils.withTable(Student.class).applyFindById(2);
+        Student student = dbUtils.withTable(Student.class).applySearchById(2);
         assertTrue(student != null);
 
         int count = dbUtils.withTable(Student.class).applyDelete(student);

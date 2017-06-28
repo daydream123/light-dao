@@ -3,6 +3,7 @@ package com.goodluck.dao.sqlite;
 import android.content.ContentValues;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A container to contain more than one CRUD jobs, and should be executed by
@@ -12,7 +13,7 @@ import java.util.ArrayList;
  * 
  */
 public final class BatchJobs {
-	private ArrayList<SQL> batchJobs;
+	private final ArrayList<SQL> batchJobs;
 
 	public BatchJobs() {
 		this.batchJobs = new ArrayList<>();
@@ -20,6 +21,12 @@ public final class BatchJobs {
 
 	public <T extends BaseTable> void addInsertJob(T table) {
 		batchJobs.add(SQLBuilder.buildInsertSQL(table));
+	}
+
+	public <T extends BaseTable> void addInsertJob(List<T> tables) {
+		for (T table : tables) {
+			batchJobs.add(SQLBuilder.buildInsertSQL(table));
+		}
 	}
 
 	public <T extends BaseTable> void addUpdateJob(Class<T> tableClass, long id, ContentValues values) {
@@ -36,6 +43,10 @@ public final class BatchJobs {
 
 	public <T extends BaseTable> void addDeleteJob(T table) {
 		batchJobs.add(SQLBuilder.buildDeleteSQL(table));
+	}
+
+	public <T extends BaseTable> void addDeleteJob(Class<T> tableClass) {
+		batchJobs.add(SQLBuilder.buildDeleteSQL(tableClass));
 	}
 
 	public <T extends BaseTable> void addDeleteJob(Class<T> tableClass, long id) {

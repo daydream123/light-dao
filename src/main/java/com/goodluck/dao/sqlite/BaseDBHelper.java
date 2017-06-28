@@ -17,7 +17,7 @@ import java.util.List;
  * @author zhangfei
  */
 public abstract class BaseDBHelper extends SQLiteOpenHelper {
-    private List<Class<? extends BaseTable>> mTableClasses = new ArrayList<>();
+    private final List<Class<? extends BaseTable>> mTableClasses = new ArrayList<>();
 
     protected abstract void onClassLoad(List<Class<? extends BaseTable>> tableClasses);
 
@@ -28,7 +28,7 @@ public abstract class BaseDBHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public final void onCreate(SQLiteDatabase db) {
+    public void onCreate(SQLiteDatabase db) {
         for (Class<? extends BaseTable> clazz : mTableClasses) {
             // ignore class with View annotation
             View tableView = clazz.getAnnotation(View.class);

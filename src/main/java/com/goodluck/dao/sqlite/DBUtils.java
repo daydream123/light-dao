@@ -16,7 +16,7 @@ import java.util.List;
 public final class DBUtils {
     private static final String TAG = "DBUtils";
     private SQLiteDatabase database;
-    private BaseDBHelper dbHelper;
+    private final BaseDBHelper dbHelper;
 
     /**
      * Create or retrieve sqlite utils instance.
@@ -52,7 +52,7 @@ public final class DBUtils {
     }
 
     public <T extends BaseTable> ConditionBuilder<T> withTable(Class<T> tableClass) {
-        return ConditionBuilder.create(getDatabase(), tableClass);
+        return new ConditionBuilder<T>(getDatabase()).withTable(tableClass);
     }
 
     /**

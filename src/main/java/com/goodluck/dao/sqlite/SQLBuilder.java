@@ -140,6 +140,13 @@ public final class SQLBuilder {
     }
 
     /**
+     *  build delete all sql with table class
+     */
+    public static <T extends BaseTable> SQL buildDeleteSQL(Class<T> tableClass) {
+        return new SQL("DELETE FROM " + ReflectTools.getTableName(tableClass));
+    }
+
+    /**
      * build delete sql with id
      */
     public static <T extends BaseTable> SQL buildDeleteSQL(Class<T> tableClass, long id) {
@@ -258,7 +265,7 @@ public final class SQLBuilder {
     }
 
     private static <T extends BaseTable> ArrayList<KeyValue<Object>> table2KeyValueList(T table) {
-        ArrayList<KeyValue<Object>> keyValueList = new ArrayList<KeyValue<Object>>();
+        ArrayList<KeyValue<Object>> keyValueList = new ArrayList<>();
         Field[] fields = ReflectTools.getTableClassFields(table.getClass());
 
         for (Field field : fields) {

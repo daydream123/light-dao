@@ -73,7 +73,12 @@ public abstract class BaseTable implements Serializable {
 				// put field value into ContentValues which is not null
 				Object value = field.get(this);
 				if (value != null) {
-					values.put(columnName, value.toString());
+					if (value instanceof Boolean) {
+						boolean boolVal = Boolean.valueOf(value.toString());
+						values.put(columnName, boolVal ? 1 : 0);
+					} else {
+						values.put(columnName, value.toString());
+					}
 				}
 			} catch (IllegalAccessException e) {
 				throw new SQLiteException("IllegalAccessException:" + e.getMessage());
@@ -88,7 +93,7 @@ public abstract class BaseTable implements Serializable {
 	 * Read the Content from a ContentCursor.
 	 */
 	void restore(Cursor cursor, String[] columns) {
-		List<String> columnList = new ArrayList<>();
+		List<String> columnList;
 		if (columns != null) {
 			columnList = Arrays.asList(columns);
 		} else {
