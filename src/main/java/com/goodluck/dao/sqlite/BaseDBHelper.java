@@ -23,7 +23,6 @@ public abstract class BaseDBHelper extends SQLiteOpenHelper {
 
     protected BaseDBHelper(Context context, String databaseName, int version) {
         super(context, databaseName, null, version);
-
         onClassLoad(mTableClasses);
     }
 

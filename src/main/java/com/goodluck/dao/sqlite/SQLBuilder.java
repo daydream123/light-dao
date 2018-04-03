@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
-
 import com.goodluck.dao.annotation.Column;
 import com.goodluck.dao.annotation.Foreign;
 import com.goodluck.dao.annotation.ID;

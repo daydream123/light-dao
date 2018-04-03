@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,9 @@ public class ConditionBuilder<T extends BaseTable> {
             } else {
                 return 0;
             }
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applyCount() error: " + DBUtils.getTraceInfo(e));
+            return 0;
         } finally {
             c.close();
         }
@@ -154,6 +158,9 @@ public class ConditionBuilder<T extends BaseTable> {
                     entities.add(table);
                 }
             }
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applySearchAsList() error: " + DBUtils.getTraceInfo(e));
+            return entities;
         } finally {
             c.close();
         }
@@ -178,6 +185,9 @@ public class ConditionBuilder<T extends BaseTable> {
             } else {
                 return null;
             }
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applySearchFirst() error: " + DBUtils.getTraceInfo(e));
+            return null;
         } finally {
             c.close();
         }
@@ -190,9 +200,9 @@ public class ConditionBuilder<T extends BaseTable> {
             content.restore(cursor, columns);
             return content;
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            Log.e(DBUtils.TAG, "getContent() error: " + DBUtils.getTraceInfo(e));
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            Log.e(DBUtils.TAG, "getContent() error: " + DBUtils.getTraceInfo(e));
         }
         return null;
     }
@@ -252,7 +262,13 @@ public class ConditionBuilder<T extends BaseTable> {
 
         String tableName = ReflectTools.getTableName(tableClass);
         checkModifiable(tableClass, "applyUpdate");
-        return database.update(tableName, values, whereClause, whereArgs);
+
+        try {
+            return database.update(tableName, values, whereClause, whereArgs);
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applyUpdate() error: " + DBUtils.getTraceInfo(e));
+            return 0;
+        }
     }
 
     /**
@@ -294,7 +310,7 @@ public class ConditionBuilder<T extends BaseTable> {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(DBUtils.TAG, "resetPrimaryKeyIfNeed() error: " + DBUtils.getTraceInfo(e));
         } finally {
             if (cursor != null) {
                 cursor.close();

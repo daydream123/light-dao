@@ -5,6 +5,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.util.Log;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,15 +17,15 @@ import java.util.List;
  * @author zf08526
  */
 public final class DBUtils {
-    private static final String TAG = "DBUtils";
+    public static final String TAG = "DBUtils";
     private SQLiteDatabase database;
     private final BaseDBHelper dbHelper;
 
     /**
-     * Create or retrieve sqlite utils instance.
+     * Create or retrieve SQLLite utils instance.
      *
      * @param dbHelper your DBHelper
-     * @return singleton of Sqlite Utils.
+     * @return singleton of SQLLite Utils.
      */
     public static DBUtils create(BaseDBHelper dbHelper) {
         return new DBUtils(dbHelper);
@@ -64,7 +67,12 @@ public final class DBUtils {
     public <T extends BaseTable> long save(T table) {
         checkModifiable(table.getClass(), "save");
         String tableName = ReflectTools.getTableName(table.getClass());
-        return getDatabase().insert(tableName, null, table.toContentValues());
+        try {
+            return getDatabase().insert(tableName, null, table.toContentValues());
+        } catch (SQLiteException e){
+            Log.e(TAG, "save(T) error: " + getTraceInfo(e));
+            return 0;
+        }
     }
 
     /**
@@ -87,7 +95,7 @@ public final class DBUtils {
             db.setTransactionSuccessful();
             return tables.size();
         } catch (SQLiteException e) {
-            Log.e(TAG, "saveAll() error: " + e.getMessage());
+            Log.e(TAG, "saveAll() error: " + getTraceInfo(e));
             return 0;
         } finally {
             db.endTransaction();
@@ -115,6 +123,7 @@ public final class DBUtils {
             database.setTransactionSuccessful();
             return true;
         } catch (SQLException e) {
+            Log.e(TAG, "applyBatchJobs() error: " + getTraceInfo(e));
             return false;
         } finally {
             database.endTransaction();
@@ -141,4 +150,22 @@ public final class DBUtils {
     }
 
 
+    public static String getTraceInfo(Throwable e) {
+        PrintWriter printWriter = null;
+        Writer info = new StringWriter();
+        try {
+            printWriter = new PrintWriter(info);
+            e.printStackTrace(printWriter);
+            Throwable cause = e.getCause();
+            while (cause != null) {
+                cause.printStackTrace(printWriter);
+                cause = cause.getCause();
+            }
+            return info.toString();
+        } finally {
+            if (printWriter != null) {
+                printWriter.close();
+            }
+        }
+    }
 }
