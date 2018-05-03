@@ -1,12 +1,12 @@
-package com.goodluck.dao.sqlite;
+package com.feiyan.lightdao.sqlite;
 
 import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
 
-import com.goodluck.dao.annotation.Column;
-import com.goodluck.dao.annotation.OrderBy;
-import com.goodluck.dao.annotation.Table;
-import com.goodluck.dao.annotation.View;
+import com.feiyan.lightdao.annotation.Column;
+import com.feiyan.lightdao.annotation.OrderBy;
+import com.feiyan.lightdao.annotation.Table;
+import com.feiyan.lightdao.annotation.View;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

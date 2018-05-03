@@ -1,13 +1,13 @@
-package com.goodluck.dao;
+package com.feiyan.lightdao;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.goodluck.dao.sqlite.BatchJobs;
-import com.goodluck.dao.sqlite.DBUtils;
-import com.goodluck.dao.tables.Student;
+import com.feiyan.lightdao.sqlite.BatchJobs;
+import com.feiyan.lightdao.sqlite.DBUtils;
+import com.feiyan.dao.tables.Student;
 
 import org.junit.Before;
 import org.junit.Test;

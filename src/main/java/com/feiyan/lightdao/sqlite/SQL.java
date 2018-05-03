@@ -1,4 +1,4 @@
-package com.goodluck.dao.sqlite;
+package com.feiyan.lightdao.sqlite;
 
 import java.util.LinkedList;
 

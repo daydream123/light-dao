@@ -1,15 +1,15 @@
-package com.goodluck.dao;
+package com.feiyan.lightdao;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.goodluck.dao.sqlite.BaseDBHelper;
-import com.goodluck.dao.sqlite.BaseTable;
-import com.goodluck.dao.sqlite.DBUtils;
-import com.goodluck.dao.sqlite.SQL;
-import com.goodluck.dao.sqlite.SQLBuilder;
-import com.goodluck.dao.tables.Student;
+import com.feiyan.lightdao.sqlite.BaseDBHelper;
+import com.feiyan.lightdao.sqlite.BaseTable;
+import com.feiyan.lightdao.sqlite.DBUtils;
+import com.feiyan.lightdao.sqlite.SQL;
+import com.feiyan.lightdao.sqlite.SQLBuilder;
+import com.feiyan.dao.tables.Student;
 
 import java.util.List;
 

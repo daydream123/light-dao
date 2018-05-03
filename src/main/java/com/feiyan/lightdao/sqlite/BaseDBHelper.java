@@ -1,11 +1,11 @@
-package com.goodluck.dao.sqlite;
+package com.feiyan.lightdao.sqlite;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.goodluck.dao.annotation.View;
+import com.feiyan.lightdao.annotation.View;
 
 import java.util.ArrayList;
 import java.util.List;

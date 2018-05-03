@@ -1,4 +1,4 @@
-package com.goodluck.dao.annotation;
+package com.feiyan.lightdao.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

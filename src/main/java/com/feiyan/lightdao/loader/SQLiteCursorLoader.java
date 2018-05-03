@@ -1,11 +1,11 @@
-package com.goodluck.dao.loader;
+package com.feiyan.lightdao.loader;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.support.v4.content.CursorLoader;
 
-import com.goodluck.dao.sqlite.ConditionBuilder;
+import com.feiyan.lightdao.sqlite.ConditionBuilder;
 
 /**
  * Used for huge data loading from database, about the usage @see {@link CursorLoader}.

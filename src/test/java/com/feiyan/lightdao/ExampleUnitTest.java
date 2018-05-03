@@ -1,4 +1,4 @@
-package com.goodluck.dao;
+package com.feiyan.lightdao;
 
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.goodluck.dao.loader;
+package com.feiyan.lightdao.loader;
 
 import android.annotation.TargetApi;
 import android.content.Context;

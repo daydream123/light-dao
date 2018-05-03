@@ -1,14 +1,12 @@
-package com.goodluck.dao.annotation;
-
-import com.goodluck.dao.sqlite.BaseTable;
+package com.feiyan.lightdao.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.FIELD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Foreign {
-    Class<? extends BaseTable> tableClass();
+public @interface Table {
+    String value();
 }

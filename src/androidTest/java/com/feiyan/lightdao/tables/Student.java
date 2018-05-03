@@ -1,8 +1,8 @@
-package com.goodluck.dao.tables;
+package com.feiyan.lightdao.tables;
 
-import com.goodluck.dao.annotation.Column;
-import com.goodluck.dao.annotation.Table;
-import com.goodluck.dao.sqlite.BaseTable;
+import com.feiyan.lightdao.annotation.Column;
+import com.feiyan.lightdao.annotation.Table;
+import com.feiyan.lightdao.sqlite.BaseTable;
 
 /**
  * Created by zhangfei on 2017/4/29.

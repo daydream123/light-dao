@@ -1,4 +1,4 @@
-package com.goodluck.dao.sqlite;
+package com.feiyan.lightdao.sqlite;
 
 /**
  * Define {@link BaseView} to distinguish {@link BaseTable}, but the content are
