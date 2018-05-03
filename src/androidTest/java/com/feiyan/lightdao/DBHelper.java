@@ -9,7 +9,7 @@ import com.feiyan.lightdao.sqlite.BaseTable;
 import com.feiyan.lightdao.sqlite.DBUtils;
 import com.feiyan.lightdao.sqlite.SQL;
 import com.feiyan.lightdao.sqlite.SQLBuilder;
-import com.feiyan.dao.tables.Student;
+import com.feiyan.lightdao.tables.Student;
 
 import java.util.List;
 

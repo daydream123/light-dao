@@ -7,7 +7,7 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.feiyan.lightdao.sqlite.BatchJobs;
 import com.feiyan.lightdao.sqlite.DBUtils;
-import com.feiyan.dao.tables.Student;
+import com.feiyan.lightdao.tables.Student;
 
 import org.junit.Before;
 import org.junit.Test;
