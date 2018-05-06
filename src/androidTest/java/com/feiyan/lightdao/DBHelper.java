@@ -4,10 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.feiyan.lightdao.sqlite.Entity;
+import com.feiyan.lightdao.sqlite.BaseDBHelper;
 import com.feiyan.lightdao.sqlite.DBUtils;
-import com.feiyan.lightdao.sqlite.SQL;
-import com.feiyan.lightdao.sqlite.SQLBuilder;
+import com.feiyan.lightdao.sqlite.Entity;
 import com.feiyan.lightdao.tables.Student;
 import com.feiyan.lightdao.tables.Teacher;
 
@@ -16,30 +15,35 @@ import java.util.List;
 /**
  * @author zhangfei
  */
-public class DBHelper extends com.feiyan.lightdao.sqlite.DBHelper {
+public class DBHelper extends BaseDBHelper {
+    private static final String DATABASE_NAME = "school.db";
+    private static final int VERSION = 1;
+
     @SuppressLint("StaticFieldLeak")
-    private static DBHelper mSingleton;
+    private static DBHelper sSingleton;
 
     private DBHelper(Context context) {
-        super(context, "school.db", 1);
+        super(context, DATABASE_NAME, VERSION);
     }
 
     private static DBHelper getSingleton(Context context) {
-        if (mSingleton == null) {
+        if (sSingleton == null) {
             synchronized (DBHelper.class) {
-                mSingleton = new DBHelper(context.getApplicationContext());
+                sSingleton = new DBHelper(context.getApplicationContext());
             }
         }
-        return mSingleton;
+        return sSingleton;
     }
 
-    /**
-     * create DBUtils with context
-     */
-    static DBUtils with(Context context){
+    public static DBUtils with(Context context) {
         return DBUtils.create(getSingleton(context));
     }
 
+    /**
+     * all table classes should configured here
+     *
+     * @param tableClasses table classes
+     */
     @Override
     protected void onClassLoad(List<Class<? extends Entity>> tableClasses) {
         tableClasses.add(Student.class);
@@ -49,6 +53,12 @@ public class DBHelper extends com.feiyan.lightdao.sqlite.DBHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         super.onUpgrade(db, oldVersion, newVersion);
-        SQL sql = SQLBuilder.buildTableCreateSQL(Student.class);
+
+        /* upgrade db version by version
+        if (oldVersion < VERSION) {
+            SQL sql = SQLBuilder.buildTableCreateSQL(Student.class);
+            db.execSQL(sql.getSql());
+        }
+        */
     }
 }

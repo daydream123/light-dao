@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
 
 import com.feiyan.lightdao.annotation.Column;
+import com.feiyan.lightdao.annotation.Table;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -128,7 +129,7 @@ public class Query implements Serializable {
         } catch (IllegalAccessException e) {
             throw new SQLiteException("IllegalAccessException:" + e.getMessage());
         } catch (IllegalArgumentException e) {
-            com.feiyan.lightdao.annotation.Table table = this.getClass().getAnnotation(com.feiyan.lightdao.annotation.Table.class);
+            Table table = this.getClass().getAnnotation(Table.class);
             throw new SQLiteException("Ursor value cannot be converted to field's value for field [" + field.getName()
                     + "] in table [" + table.value() + "]");
         }

@@ -4,21 +4,24 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.feiyan.lightdao.annotation.Table;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A help class sub-class of SQLiteOpenHelper, every sub-class of this should be
- * a singleton like below:
+ * An enhanced SQLiteOpenHelper, it can auto create tables with table class,
+ * in your project there should have one or more databases and every databases
+ * should have its own Helper: create one and extend {@link BaseDBHelper}
  *
  * @author zhangfei
  */
-public abstract class DBHelper extends SQLiteOpenHelper {
+public abstract class BaseDBHelper extends SQLiteOpenHelper {
     private final List<Class<? extends Entity>> mTableClasses = new ArrayList<>();
 
     protected abstract void onClassLoad(List<Class<? extends Entity>> tableClasses);
 
-    protected DBHelper(Context context, String databaseName, int version) {
+    protected BaseDBHelper(Context context, String databaseName, int version) {
         super(context, databaseName, null, version);
         onClassLoad(mTableClasses);
     }
@@ -27,8 +30,8 @@ public abstract class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         for (Class<? extends Entity> clazz : mTableClasses) {
             // ignore class with View annotation
-            com.feiyan.lightdao.annotation.Table tableView = clazz.getAnnotation(com.feiyan.lightdao.annotation.Table.class);
-            if (tableView != null) {
+            Table tableView = clazz.getAnnotation(Table.class);
+            if (tableView == null) {
                 continue;
             }
 

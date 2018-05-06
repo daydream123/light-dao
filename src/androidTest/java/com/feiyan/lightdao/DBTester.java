@@ -55,6 +55,7 @@ public class DBTester {
             Student student = new Student();
             student.name = "name " + i;
             student.age = i;
+            student.teacherId = 1; // 假设都是ID为1的教师的学生
             students.add(student);
         }
         int count = DBHelper.with(mContext).saveAll(students);

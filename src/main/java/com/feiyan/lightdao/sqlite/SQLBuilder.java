@@ -5,9 +5,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
 
-import com.feiyan.lightdao.annotation.Foreign;
 import com.feiyan.lightdao.annotation.Column;
+import com.feiyan.lightdao.annotation.Foreign;
 import com.feiyan.lightdao.annotation.ID;
+import com.feiyan.lightdao.annotation.Table;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -33,7 +34,7 @@ public final class SQLBuilder {
         buffer.append(" (");
         Field[] fields = ReflectTools.getClassFields(tableClass);
 
-        int index = 0;// no need ", " for last column
+        int index = 0;
         for (Field field : fields) {
             index++;
 
@@ -75,8 +76,8 @@ public final class SQLBuilder {
             // add foreign key definition
             Foreign foreign = field.getAnnotation(Foreign.class);
             if (foreign != null) {
-                Class<? extends Entity> refTableClass = foreign.tableClass();
-                com.feiyan.lightdao.annotation.Table refTable = refTableClass.getAnnotation(com.feiyan.lightdao.annotation.Table.class);
+                Class<? extends Entity> refTableClass = foreign.value();
+                Table refTable = refTableClass.getAnnotation(Table.class);
                 String refTableName = refTable.value();
                 String refColumnName = Entity._ID;
                 buffer.append(" REFERENCES ").append(refTableName).append("(").append(refColumnName).append(")");

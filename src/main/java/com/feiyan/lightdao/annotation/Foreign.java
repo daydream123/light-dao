@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Foreign {
-    Class<? extends Entity> tableClass();
+    Class<? extends Entity> value();
 }

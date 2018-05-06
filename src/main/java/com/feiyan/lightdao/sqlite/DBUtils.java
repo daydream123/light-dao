@@ -19,7 +19,7 @@ import java.util.List;
 public final class DBUtils {
     public static final String TAG = "DBUtils";
     private SQLiteDatabase database;
-    private final DBHelper dbHelper;
+    private final BaseDBHelper dbHelper;
 
     /**
      * Create or retrieve SQLLite utils instance.
@@ -27,11 +27,11 @@ public final class DBUtils {
      * @param dbHelper your DBHelper
      * @return singleton of SQLLite Utils.
      */
-    public static DBUtils create(DBHelper dbHelper) {
+    public static DBUtils create(BaseDBHelper dbHelper) {
         return new DBUtils(dbHelper);
     }
 
-    private DBUtils(DBHelper dbHelper) {
+    private DBUtils(BaseDBHelper dbHelper) {
         this.dbHelper = dbHelper;
         this.database = dbHelper.getWritableDatabase();
     }
