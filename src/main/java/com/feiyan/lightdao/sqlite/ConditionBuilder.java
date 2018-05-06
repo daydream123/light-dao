@@ -13,12 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by zhangfei on 2017/4/29.
+ * Expose methods to allow to set SQL execute parameters and
+ * methods to do db jobs like query, update, delete and so on.
+ *
+ * @author zhangfei
  */
-public class ConditionBuilder<T extends BaseTable> {
+public class ConditionBuilder<T extends Entity> {
     private final SQLiteDatabase database;
 
-    private Class<T> tableClass;
+    private Class<T> clazz;
     private String[] columns;
     private String whereClause;
     private String[] whereArgs;
@@ -34,11 +37,11 @@ public class ConditionBuilder<T extends BaseTable> {
     }
 
     public ConditionBuilder<T> withTable(Class<T> tableClass) {
-        this.tableClass = tableClass;
+        this.clazz = tableClass;
         return this;
     }
 
-    public ConditionBuilder<T> withColumns(String... columns) {
+    public final ConditionBuilder<T> withColumns(String... columns) {
         this.columns = columns;
         return this;
     }
@@ -64,35 +67,6 @@ public class ConditionBuilder<T extends BaseTable> {
         }
 
         return this;
-    }
-
-    public T applySearchById(long id) {
-        this.whereClause = BaseTable._ID + "=?";
-        this.whereArgs = new String[]{String.valueOf(id)};
-
-        return applySearchFirst();
-    }
-
-    public int applyCount() {
-        this.columns = BaseTable.COUNT_COLUMNS;
-
-        Cursor c = applySearch();
-        if (c == null) {
-            throw new SQLiteException("Cannot create cursor object, database or columns may have error...");
-        }
-
-        try {
-            if (c.moveToFirst()) {
-                return c.getInt(0);
-            } else {
-                return 0;
-            }
-        } catch (SQLiteException e) {
-            Log.e(DBUtils.TAG, "applyCount() error: " + DBUtils.getTraceInfo(e));
-            return 0;
-        } finally {
-            c.close();
-        }
     }
 
     public ConditionBuilder<T> withGroupBy(String groupBy) {
@@ -121,6 +95,35 @@ public class ConditionBuilder<T extends BaseTable> {
         return this;
     }
 
+    public T applySearchById(long id) {
+        this.whereClause = Entity._ID + "=?";
+        this.whereArgs = new String[]{String.valueOf(id)};
+
+        return applySearchFirst();
+    }
+
+    public int applyCount() {
+        this.columns = Entity.COUNT_COLUMNS;
+
+        Cursor c = applySearch();
+        if (c == null) {
+            throw new SQLiteException("Cannot create cursor object, database or columns may have error...");
+        }
+
+        try {
+            if (c.moveToFirst()) {
+                return c.getInt(0);
+            } else {
+                return 0;
+            }
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applyCount() error: " + DBUtils.getTraceInfo(e));
+            return 0;
+        } finally {
+            c.close();
+        }
+    }
+
     /**
      * Apply search and return cursor as result
      *
@@ -133,10 +136,10 @@ public class ConditionBuilder<T extends BaseTable> {
         }
 
         if (TextUtils.isEmpty(orderBy)) {
-            orderBy = ReflectTools.getDefaultOrderBy(tableClass);
+            orderBy = ReflectTools.getDefaultOrderBy(clazz);
         }
 
-        String tableName = ReflectTools.getTableName(tableClass);
+        String tableName = ReflectTools.getTableName(clazz);
         String query = SQLiteQueryBuilder.buildQueryString(
                 distinct, tableName, columns, whereClause,
                 groupBy, having, orderBy, limit);
@@ -153,7 +156,7 @@ public class ConditionBuilder<T extends BaseTable> {
         List<T> entities = new ArrayList<>();
         try {
             while (c.moveToNext()) {
-                T table = getContent(c, tableClass);
+                T table = getContent(c, clazz);
                 if (table != null) {
                     entities.add(table);
                 }
@@ -181,7 +184,7 @@ public class ConditionBuilder<T extends BaseTable> {
 
         try {
             if (c.moveToFirst()) {
-                return getContent(c, tableClass);
+                return getContent(c, clazz);
             } else {
                 return null;
             }
@@ -213,7 +216,7 @@ public class ConditionBuilder<T extends BaseTable> {
      * @return count of delete rows
      */
     public int applyDelete() {
-        String tableName = ReflectTools.getTableName(tableClass);
+        String tableName = ReflectTools.getTableName(clazz);
         int count = database.delete(tableName, whereClause, whereArgs);
         if (TextUtils.isEmpty(whereClause)) {
             resetPrimaryKeyIfNeed(tableName);
@@ -238,14 +241,13 @@ public class ConditionBuilder<T extends BaseTable> {
      * @return count of deleted row
      */
     public int applyDeleteById(long id) {
-        if (id == BaseTable.NOT_SAVED) {
+        if (id == Entity.NOT_SAVED) {
             return 0;
         }
 
-        this.whereClause = BaseTable._ID + " = ?";
+        this.whereClause = Entity._ID + " = ?";
         this.whereArgs = new String[]{String.valueOf(id)};
 
-        checkModifiable(tableClass, "applyDeleteById");
         return applyDelete();
     }
 
@@ -260,8 +262,7 @@ public class ConditionBuilder<T extends BaseTable> {
             throw new SQLiteException("ContentValues is empty, nothing can be updated");
         }
 
-        String tableName = ReflectTools.getTableName(tableClass);
-        checkModifiable(tableClass, "applyUpdate");
+        String tableName = ReflectTools.getTableName(clazz);
 
         try {
             return database.update(tableName, values, whereClause, whereArgs);
@@ -282,7 +283,7 @@ public class ConditionBuilder<T extends BaseTable> {
             throw new SQLException("table to update cannot be null");
         }
 
-        this.whereClause = BaseTable._ID + " = ?";
+        this.whereClause = Entity._ID + " = ?";
         this.whereArgs = new String[]{String.valueOf(table.id)};
         ContentValues values = table.toContentValues();
         return applyUpdate(values);
@@ -315,25 +316,6 @@ public class ConditionBuilder<T extends BaseTable> {
             if (cursor != null) {
                 cursor.close();
             }
-        }
-    }
-
-    /**
-     * As we all known Table View is only used to search, its record cannot be updated or deleted.
-     *
-     * @param tableClass table class
-     * @param actionDesc string flag
-     */
-    private void checkModifiable(Class<? extends BaseTable> tableClass, String actionDesc) {
-        try {
-            if (!tableClass.newInstance().isTable()) {
-                throw new SQLiteException("Failed to " + actionDesc + " [" + tableClass.getSimpleName()
-                        + "], since it is table view not table.");
-            }
-        } catch (InstantiationException e) {
-            throw new SQLiteException(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new SQLiteException(e.getMessage());
         }
     }
 }

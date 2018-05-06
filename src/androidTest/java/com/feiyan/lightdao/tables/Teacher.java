@@ -7,16 +7,10 @@ import com.feiyan.lightdao.sqlite.Entity;
 /**
  * Created by zhangfei on 2017/4/29.
  */
-@Table("student")
-public class Student extends Entity {
-
-    @Column(name = "teacher_id", notnull = true)
-    public long teacherId;
+@Table("teacher")
+public class Teacher extends Entity {
 
     @Column(name = "name", notnull = true)
     public String name;
-
-    @Column(name = "age", notnull = true)
-    public Integer age;
 
 }

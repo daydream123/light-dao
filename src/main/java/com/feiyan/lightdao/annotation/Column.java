@@ -5,6 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Used to define column on field.
+ *
+ * @author zhangfei
+ */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
@@ -13,6 +18,8 @@ public @interface Column {
     boolean notnull() default false;
 
     boolean unique() default false;
+
+    String aliasName() default "";
 
     String defVal() default "";
 

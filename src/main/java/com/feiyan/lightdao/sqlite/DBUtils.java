@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A convenient tool to do CRUD actions on SQLite database.
+ * A convenient tool to do CRUD jobs on SQLite database.
  *
- * @author zf08526
+ * @author zhangfei
  */
 public final class DBUtils {
     public static final String TAG = "DBUtils";
     private SQLiteDatabase database;
-    private final BaseDBHelper dbHelper;
+    private final DBHelper dbHelper;
 
     /**
      * Create or retrieve SQLLite utils instance.
@@ -27,11 +27,11 @@ public final class DBUtils {
      * @param dbHelper your DBHelper
      * @return singleton of SQLLite Utils.
      */
-    public static DBUtils create(BaseDBHelper dbHelper) {
+    public static DBUtils create(DBHelper dbHelper) {
         return new DBUtils(dbHelper);
     }
 
-    private DBUtils(BaseDBHelper dbHelper) {
+    private DBUtils(DBHelper dbHelper) {
         this.dbHelper = dbHelper;
         this.database = dbHelper.getWritableDatabase();
     }
@@ -54,8 +54,12 @@ public final class DBUtils {
         }
     }
 
-    public <T extends BaseTable> ConditionBuilder<T> withTable(Class<T> tableClass) {
+    public <T extends Entity> ConditionBuilder<T> withTable(Class<T> tableClass) {
         return new ConditionBuilder<T>(getDatabase()).withTable(tableClass);
+    }
+
+    public <T extends Query> MultiTableConditionBuilder<T> withColumns(Class<T> columns){
+        return new MultiTableConditionBuilder<T>(getDatabase()).withColumns(columns);
     }
 
     /**
@@ -64,8 +68,7 @@ public final class DBUtils {
      * @param table table object
      * @return row id of inserted row
      */
-    public <T extends BaseTable> long save(T table) {
-        checkModifiable(table.getClass(), "save");
+    public <T extends Entity> long save(T table) {
         String tableName = ReflectTools.getTableName(table.getClass());
         try {
             return getDatabase().insert(tableName, null, table.toContentValues());
@@ -81,12 +84,11 @@ public final class DBUtils {
      * @param tables records to save into database.
      * @return saved count
      */
-    public <T extends BaseTable> int saveAll(List<T> tables) {
+    public <T extends Entity> int saveAll(List<T> tables) {
         SQLiteDatabase db = getDatabase();
         try {
             db.beginTransaction();
             for (T table : tables) {
-                checkModifiable(table.getClass(), "saveAll");
                 SQL sql = SQLBuilder.buildInsertSQL(table);
                 if (sql != null) {
                     db.execSQL(sql.getSql(), sql.getBindArgsAsArray(false));
@@ -129,26 +131,6 @@ public final class DBUtils {
             database.endTransaction();
         }
     }
-
-    /**
-     * As we all known Table View is only used to search, its record cannot be updated or deleted.
-     *
-     * @param tableClass table class
-     * @param operation  string flag
-     */
-    private void checkModifiable(Class<? extends BaseTable> tableClass, String operation) {
-        try {
-            if (!tableClass.newInstance().isTable()) {
-                throw new SQLiteException("Failed to " + operation + " [" + tableClass.getSimpleName()
-                        + "], since it is table view not table.");
-            }
-        } catch (InstantiationException e) {
-            throw new SQLiteException(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new SQLiteException(e.getMessage());
-        }
-    }
-
 
     public static String getTraceInfo(Throwable e) {
         PrintWriter printWriter = null;

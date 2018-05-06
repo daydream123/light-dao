@@ -4,19 +4,19 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.feiyan.lightdao.sqlite.BaseDBHelper;
-import com.feiyan.lightdao.sqlite.BaseTable;
+import com.feiyan.lightdao.sqlite.Entity;
 import com.feiyan.lightdao.sqlite.DBUtils;
 import com.feiyan.lightdao.sqlite.SQL;
 import com.feiyan.lightdao.sqlite.SQLBuilder;
 import com.feiyan.lightdao.tables.Student;
+import com.feiyan.lightdao.tables.Teacher;
 
 import java.util.List;
 
 /**
- * Created by zhangfei on 2017/4/29.
+ * @author zhangfei
  */
-public class DBHelper extends BaseDBHelper {
+public class DBHelper extends com.feiyan.lightdao.sqlite.DBHelper {
     @SuppressLint("StaticFieldLeak")
     private static DBHelper mSingleton;
 
@@ -41,8 +41,9 @@ public class DBHelper extends BaseDBHelper {
     }
 
     @Override
-    protected void onClassLoad(List<Class<? extends BaseTable>> tableClasses) {
+    protected void onClassLoad(List<Class<? extends Entity>> tableClasses) {
         tableClasses.add(Student.class);
+        tableClasses.add(Teacher.class);
     }
 
     @Override

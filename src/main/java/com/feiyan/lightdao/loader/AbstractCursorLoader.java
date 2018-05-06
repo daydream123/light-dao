@@ -8,9 +8,9 @@ import android.support.v4.content.AsyncTaskLoader;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public abstract class AbstractCursorLoader extends AsyncTaskLoader<Cursor> {
-    protected abstract Cursor buildCursor();
-
     private Cursor lastCursor = null;
+
+    protected abstract Cursor buildCursor();
 
     public AbstractCursorLoader(final Context context) {
         super(context);

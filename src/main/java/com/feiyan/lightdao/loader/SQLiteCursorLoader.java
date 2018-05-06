@@ -10,7 +10,7 @@ import com.feiyan.lightdao.sqlite.ConditionBuilder;
 /**
  * Used for huge data loading from database, about the usage @see {@link CursorLoader}.
  *
- * @author zf08526
+ * @author zhangfei
  */
 public class SQLiteCursorLoader extends AbstractCursorLoader {
     // query mode

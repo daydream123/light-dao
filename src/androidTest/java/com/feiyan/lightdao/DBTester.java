@@ -7,7 +7,9 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.feiyan.lightdao.sqlite.BatchJobs;
 import com.feiyan.lightdao.sqlite.DBUtils;
+import com.feiyan.lightdao.tables.Relation;
 import com.feiyan.lightdao.tables.Student;
+import com.feiyan.lightdao.tables.Teacher;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class ExampleInstrumentedTest {
+public class DBTester {
     private Context mContext;
 
     @Before
@@ -34,8 +36,13 @@ public class ExampleInstrumentedTest {
 
     @Test
     public void testSave(){
+        Teacher teacher = new Teacher();
+        teacher.name = "王老师";
+        long teacherId = DBHelper.with(mContext).save(teacher);
+
         Student student = new Student();
-        student.name = "zhangsan";
+        student.teacherId = teacherId;
+        student.name = "小学生";
         student.age = 20;
         long id = DBHelper.with(mContext).save(student);
         assertTrue(id > 0);
@@ -58,7 +65,7 @@ public class ExampleInstrumentedTest {
     public void testCount() {
         int count = DBHelper.with(mContext)
                 .withTable(Student.class)
-                .withWhere(Student.COLUMN_AGE + " > ?", 5)
+                .withWhere("age > ?", 5)
                 .applyCount();
         assertTrue(count > 0);
     }
@@ -83,7 +90,7 @@ public class ExampleInstrumentedTest {
     public void testSearch(){
         List<Student> students = DBHelper.with(mContext)
                 .withTable(Student.class)
-                .withWhere(Student.COLUMN_AGE + ">?", 5)
+                .withWhere("age>?", 5)
                 .applySearchAsList();
         assertTrue(students.size() > 0);
     }
@@ -91,11 +98,11 @@ public class ExampleInstrumentedTest {
     @Test
     public void testUpdate(){
         ContentValues values = new ContentValues();
-        values.put(Student.COLUMN_NAME, "hello baby");
+        values.put("name", "hello baby");
 
         int count = DBHelper.with(mContext)
                 .withTable(Student.class)
-                .withWhere(Student.COLUMN_AGE + "<?", 5)
+                .withWhere("age<?", 5)
                 .applyUpdate(values);
         assertTrue(count > 0);
     }
@@ -129,7 +136,7 @@ public class ExampleInstrumentedTest {
 
     @Test
     public void testDelete() {
-        int count = DBHelper.with(mContext).withTable(Student.class).withWhere(Student.COLUMN_AGE + ">=?", 9).applyDelete();
+        int count = DBHelper.with(mContext).withTable(Student.class).withWhere("age>=?", 9).applyDelete();
         assertTrue(count > 0);
     }
 
@@ -150,7 +157,7 @@ public class ExampleInstrumentedTest {
         jobs.addUpdateJob(Student.class, student.id, student.toContentValues());
 
         // update with condition
-        jobs.addUpdateJob(Student.class, student.toContentValues(), Student.COLUMN_AGE + "=?", 6);
+        jobs.addUpdateJob(Student.class, student.toContentValues(), "age=?", 6);
 
         // delete with table object
         jobs.addDeleteJob(student);
@@ -159,9 +166,19 @@ public class ExampleInstrumentedTest {
         jobs.addDeleteJob(Student.class, 7);
 
         // delete with condition
-        jobs.addDeleteJob(Student.class, Student.COLUMN_AGE + "<?", 3);
+        jobs.addDeleteJob(Student.class, "age<?", 3);
 
         boolean success = DBHelper.with(mContext).applyBatchJobs(jobs);
         assertTrue(success);
+    }
+
+    @Test
+    public void testCrossTableQuery(){
+        List<Relation> list = DBHelper.with(mContext)
+                .withColumns(Relation.class)
+                .withTableNames("student", "teacher")
+                .withWhere("teacher_id=student._id")
+                .applySearchAsList();
+        System.out.println(list.size());
     }
 }
