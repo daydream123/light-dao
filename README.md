@@ -171,7 +171,7 @@ assertTrue(count > 0);
 #### 4.0 根据主键ID删除
 ```java
 int count = DBHelper.with(mContext).withTable(Student.class).applyDeleteById(1);
-        assertTrue(count > 0);
+assertTrue(count > 0);
 ```
 #### 4.1 删除指定的对象
 ```java
@@ -241,9 +241,9 @@ public class Relation extends Query {
 // withColumns: 指定查询要返回的字段定义类
 // withTableNames: 指定要跨表查询的表名
 List<Relation> list = DBHelper.with(mContext)
-        .withColumns(Relation.class)
-        .withTableNames("student", "teacher")
-        .withWhere("teacher_id=student._id")
-        .applySearchAsList();
+    .withColumns(Relation.class)
+    .withTableNames("student", "teacher")
+    .withWhere("teacher_id=student._id")
+    .applySearchAsList();
 System.out.println(list.size());
 ```
