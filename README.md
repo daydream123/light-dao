@@ -5,7 +5,7 @@
 最初的萌芽来自于Android Email App内部一个叫[EmailContent](https://github.com/android/platform_packages_apps_email/blob/552ef93f45b6f818bb269920c309741c51e62b1e/emailcommon/src/com/android/emailcommon/provider/EmailContent.java)的class定义。每个Table类都手动实现toContentValues()和restore(Cursor cursor)，这样可以避免重复通过Cursor拼装表对象。随后自己就想写了一个Utils类似的工具类类来提供一系列增删改查的API，当然这些API的操作对象都是table对象，随着迭代慢慢衍化如今更加友好的light-dao了。
 
 ## 下面描述下如何使用此light-dao：
-### 1. 得定义一个继承BaseDBHelper的DBHelper，大家都懂的:
+### 1. 得定义一个继承BaseDBHelper的DBHelper，类似Android SDK的做法:
 
 ```java
 public class DBHelper extends BaseDBHelper {
