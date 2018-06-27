@@ -1,12 +1,10 @@
 package com.feiyan.lightdao.conditionbuilder;
 
 import com.feiyan.lightdao.annotation.CrossJoin;
-import com.feiyan.lightdao.annotation.FullJoin;
 import com.feiyan.lightdao.annotation.InnerJoin;
 import com.feiyan.lightdao.annotation.JoinItem;
 import com.feiyan.lightdao.annotation.LeftJoin;
 import com.feiyan.lightdao.annotation.NaturalJoin;
-import com.feiyan.lightdao.annotation.RightJoin;
 
 class JoinClauseBuilder {
 
@@ -57,19 +55,9 @@ class JoinClauseBuilder {
         return whereBuilder.toString();
     }
 
-    public static String buildFullJoinClause(FullJoin fullJoin){
-        return fullJoin.firstTable() + " FULL JOIN " + fullJoin.secondTable() + " ON " +
-                fullJoin.firstTable() + "." + fullJoin.firstColumn() + "=" + fullJoin.secondTable() + "." + fullJoin.secondColumn();
-    }
-
     public static String buildLeftJoinClause(LeftJoin leftJoin){
         return leftJoin.firstTable() + " LEFT JOIN " + leftJoin.secondTable() + " ON " +
                 leftJoin.firstTable() + "." + leftJoin.firstColumn() + "=" + leftJoin.secondTable() + "." + leftJoin.secondColumn();
-    }
-
-    public static String buildRightJoinClause(RightJoin rightJoin){
-        return rightJoin.firstTable() + " RIGHT JOIN " + rightJoin.secondTable() + " ON " +
-                rightJoin.firstTable() + "." + rightJoin.firstColumn() + "=" + rightJoin.secondTable() + "." + rightJoin.secondColumn();
     }
 
     public static String buildCrossJoinClause(CrossJoin crossJoin){

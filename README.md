@@ -1,4 +1,5 @@
 ## light-dao 
+
 一个非常轻量级别的SQLite ORM，通过使用Java注解和Java反射实现.
 
 ## 想法起源：
@@ -82,6 +83,7 @@ public class Student extends Entity {
 
 ### 3. 最后就可以通过lightdao进行常见的数据库增删改查了：
 #### 3.1 单个保存
+
 ```java
 Teacher teacher = new Teacher();
 teacher.name = "王老师";
@@ -97,6 +99,7 @@ assertTrue(id > 0);
 ```
 
 #### 3.2 批量保存
+
 ```java
 List<Student> students = new ArrayList<>();
 for (int i = 0; i < 10; i++) {
@@ -109,7 +112,9 @@ for (int i = 0; i < 10; i++) {
 int count = DBHelper.with(mContext).saveAll(students);
 assertTrue(count == students.size());
 ```
+
 #### 3.3 数量查询
+
 ```java
 int count = DBHelper.with(mContext)
     .withTable(Student.class)
@@ -117,21 +122,27 @@ int count = DBHelper.with(mContext)
     .applyCount();
 assertTrue(count > 0);
 ```        
+
 #### 3.5 根据主键ID查找
+
 ```java
 Student student = DBHelper.with(mContext)
     .withTable(Student.class)
     .applySearchById(1);
 assertTrue(student != null);
 ```
+
 #### 3.6 查询所有并以list返回结果
+
 ```java
 List<Student> students = DBHelper.with(mContext)
     .withTable(Student.class)
     .applySearchAsList();
 assertTrue(students.size() > 0);
 ```
+
 #### 3.7 带有条件查询并以list返回结果
+
 ```java
 // 类似的还有很多其他以“with”开头的API，如：
 // withColumns: 只查询指定的column
@@ -147,7 +158,9 @@ List<Student> students = DBHelper.with(mContext)
     .applySearchAsList();
 assertTrue(students.size() > 0);
 ```
+
 #### 3.8 更新部分字段
+
 ```java
 ContentValues values = new ContentValues();
 values.put("name", "hello baby");
@@ -158,7 +171,9 @@ int count = DBHelper.with(mContext)
         .applyUpdate(values);
 assertTrue(count > 0);
 ```
+
 #### 3.9 根据对象更新
+
 ```java
 DBUtils dbUtils = DBHelper.with(mContext);
 Student student = dbUtils.withTable(Student.class).applySearchById(1);
@@ -168,12 +183,16 @@ student.name = "testUpdateTable";
 int count = dbUtils.withTable(Student.class).applyUpdate(student);
 assertTrue(count > 0);
 ```
+
 #### 4.0 根据主键ID删除
+
 ```java
 int count = DBHelper.with(mContext).withTable(Student.class).applyDeleteById(1);
 assertTrue(count > 0);
 ```
+
 #### 4.1 删除指定的对象
+
 ```java
 DBUtils dbUtils = DBHelper.with(mContext);
 Student student = dbUtils.withTable(Student.class).applySearchById(2);
@@ -182,12 +201,16 @@ assertTrue(student != null);
 int count = dbUtils.withTable(Student.class).applyDelete(student);
 assertTrue(count > 0);
 ```
+
 #### 4.2 根据条件删除
+
 ```java
 int count = DBHelper.with(mContext).withTable(Student.class).withWhere("age>=?", 9).applyDelete();
 assertTrue(count > 0);
 ```
+
 #### 4.3 批处理（数据库事务）
+
 ```java
 BatchJobs jobs = new BatchJobs();
 Student student = new Student();
@@ -218,24 +241,27 @@ jobs.addDeleteJob(Student.class, "age<?", 3);
 boolean success = DBHelper.with(mContext).applyBatchJobs(jobs);
 assertTrue(success);
 ```
+
 #### 4.4 跨表查询
+
 ```java
 // 因为跨表查询的结果来自于多个表，所以得重新定义返回结果的对象，并通过aliasName指定此字段来自于哪个表中的哪个字段
+@InnerJoin(@InnerJoinItem(firstTable = "student", firstColumn = "_id", secondTable ="teacher", secondColumn = "_id"))
 public class Relation extends Query {
-	@Column(name = "teacher_id", aliasName = "student._id as teacher_id")
-	public long teacherId;
-	
-	@Column(name = "teacher_name", aliasName = "teacher.name as teacher_name")
-	public String teacherName;
-	
-	@Column(name = "student_id", aliasName = "student._id as student_id")
-	public long studentId;
-	
-	@Column(name = "student_name", aliasName = "student.name as student_name")
-	public String studentName;
-	
-	@Column(name = "age")
-	public int studentAge;
+    @Column(name = "teacher_id", aliasName = "student._id as teacher_id")
+    public long teacherId;
+
+    @Column(name = "teacher_name", aliasName = "teacher.name as teacher_name")
+    public String teacherName;
+
+    @Column(name = "student_id", aliasName = "student._id as student_id")
+    public long studentId;
+
+    @Column(name = "student_name", aliasName = "student.name as student_name")
+    public String studentName;
+
+    @Column(name = "age")
+    public int studentAge;
 }
 
 // withColumns: 指定查询要返回的字段定义类
@@ -245,5 +271,8 @@ List<Relation> list = DBHelper.with(mContext)
     .withTableNames("student", "teacher")
     .withWhere("teacher_id=student._id")
     .applySearchAsList();
+
 System.out.println(list.size());
 ```
+
+>因为跨表查询需要指定便于表之间的外键关联关系，所以需要借助@InnerJoin, @CrossJoin, @LeftJoin, @RightJoin, @NaturalJoin描述他们的关联关系。其中内连接因为支持多表以上连接，所以@InnerJoin的参数是一个数组(@InnerJoinItem)，每个item描述其中两张表之间的外键关联关系。

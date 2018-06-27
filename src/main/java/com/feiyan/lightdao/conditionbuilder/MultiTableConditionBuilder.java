@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
 import com.feiyan.lightdao.annotation.CrossJoin;
-import com.feiyan.lightdao.annotation.FullJoin;
 import com.feiyan.lightdao.annotation.ID;
 import com.feiyan.lightdao.DBUtils;
 import com.feiyan.lightdao.Entity;
@@ -18,7 +17,6 @@ import com.feiyan.lightdao.ColumnInfo;
 import com.feiyan.lightdao.annotation.InnerJoin;
 import com.feiyan.lightdao.annotation.LeftJoin;
 import com.feiyan.lightdao.annotation.NaturalJoin;
-import com.feiyan.lightdao.annotation.RightJoin;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -166,47 +164,29 @@ public class MultiTableConditionBuilder<T extends Query> implements BuilderSuppo
             return database.rawQuery(query, whereArgs);
         }
 
-        FullJoin fullJoin = clazz.getAnnotation(FullJoin.class);
-        if (fullJoin != null){
-            String whereClause = JoinClauseBuilder.buildFullJoinClause(fullJoin);
-            String query = SQLiteQueryBuilder.buildQueryString(
-                    distinct, whereClause, aliasColumns, whereClause,
-                    groupBy, having, orderBy, limit);
-            return database.rawQuery(query, whereArgs);
-        }
-
         LeftJoin leftJoin = clazz.getAnnotation(LeftJoin.class);
         if (leftJoin != null){
-            String whereClause = JoinClauseBuilder.buildLeftJoinClause(leftJoin);
+            String tables = JoinClauseBuilder.buildLeftJoinClause(leftJoin);
             String query = SQLiteQueryBuilder.buildQueryString(
-                    distinct, whereClause, aliasColumns, whereClause,
-                    groupBy, having, orderBy, limit);
-            return database.rawQuery(query, whereArgs);
-        }
-
-        RightJoin rightJoin = clazz.getAnnotation(RightJoin.class);
-        if (rightJoin != null){
-            String whereClause = JoinClauseBuilder.buildRightJoinClause(rightJoin);
-            String query = SQLiteQueryBuilder.buildQueryString(
-                    distinct, whereClause, aliasColumns, whereClause,
+                    distinct, tables, aliasColumns, whereClause,
                     groupBy, having, orderBy, limit);
             return database.rawQuery(query, whereArgs);
         }
 
         CrossJoin crossJoin = clazz.getAnnotation(CrossJoin.class);
         if (crossJoin != null){
-            String whereClause = JoinClauseBuilder.buildCrossJoinClause(crossJoin);
+            String tables = JoinClauseBuilder.buildCrossJoinClause(crossJoin);
             String query = SQLiteQueryBuilder.buildQueryString(
-                    distinct, whereClause, aliasColumns, whereClause,
+                    distinct, tables, aliasColumns, whereClause,
                     groupBy, having, orderBy, limit);
             return database.rawQuery(query, whereArgs);
         }
 
         NaturalJoin naturalJoin = clazz.getAnnotation(NaturalJoin.class);
         if (naturalJoin != null){
-            String whereClause = JoinClauseBuilder.buildNaturalJoinClause(naturalJoin);
+            String tables = JoinClauseBuilder.buildNaturalJoinClause(naturalJoin);
             String query = SQLiteQueryBuilder.buildQueryString(
-                    distinct, whereClause, aliasColumns, whereClause,
+                    distinct, tables, aliasColumns, whereClause,
                     groupBy, having, orderBy, limit);
             return database.rawQuery(query, whereArgs);
         }
