@@ -5,8 +5,6 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.feiyan.lightdao.sqlite.BatchJobs;
-import com.feiyan.lightdao.sqlite.DBUtils;
 import com.feiyan.lightdao.tables.Relation;
 import com.feiyan.lightdao.tables.Student;
 import com.feiyan.lightdao.tables.Teacher;
@@ -176,9 +174,7 @@ public class DBTester {
     @Test
     public void testCrossTableQuery(){
         List<Relation> list = DBHelper.with(mContext)
-                .withColumns(Relation.class)
-                .withTableNames("student", "teacher")
-                .withWhere("teacher_id=student._id")
+                .withQuery(Relation.class)
                 .applySearchAsList();
         System.out.println(list.size());
     }

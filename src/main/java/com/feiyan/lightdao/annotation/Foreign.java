@@ -1,6 +1,6 @@
 package com.feiyan.lightdao.annotation;
 
-import com.feiyan.lightdao.sqlite.Entity;
+import com.feiyan.lightdao.Entity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

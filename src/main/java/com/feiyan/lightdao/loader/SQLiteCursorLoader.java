@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.support.v4.content.CursorLoader;
 
-import com.feiyan.lightdao.sqlite.ConditionBuilder;
+import com.feiyan.lightdao.conditionbuilder.BuilderSupport;
 
 /**
  * Used for huge data loading from database, about the usage @see {@link CursorLoader}.
@@ -17,7 +17,7 @@ public class SQLiteCursorLoader extends AbstractCursorLoader {
     private static final int MODE_CURSOR = 0;
     private static final int MODE_QUERY = 1;
 
-    private ConditionBuilder conditionBuilder;
+    private BuilderSupport conditionBuilder;
     private Cursor cursor;
 
     private int queryMode = -1;
@@ -28,7 +28,7 @@ public class SQLiteCursorLoader extends AbstractCursorLoader {
         this.queryMode = MODE_CURSOR;
     }
 
-    public SQLiteCursorLoader(Context context, ConditionBuilder conditionBuilder) {
+    public SQLiteCursorLoader(Context context, BuilderSupport conditionBuilder) {
         super(context);
         this.conditionBuilder = conditionBuilder;
         this.queryMode = MODE_QUERY;

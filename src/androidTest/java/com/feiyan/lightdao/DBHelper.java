@@ -4,9 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.feiyan.lightdao.sqlite.BaseDBHelper;
-import com.feiyan.lightdao.sqlite.DBUtils;
-import com.feiyan.lightdao.sqlite.Entity;
 import com.feiyan.lightdao.tables.Student;
 import com.feiyan.lightdao.tables.Teacher;
 

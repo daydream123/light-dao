@@ -1,25 +1,28 @@
-package com.feiyan.lightdao.sqlite;
+package com.feiyan.lightdao.conditionbuilder;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.feiyan.lightdao.annotation.ID;
+import com.feiyan.lightdao.DBUtils;
+import com.feiyan.lightdao.Entity;
+import com.feiyan.lightdao.ReflectTools;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Smilier with {@link ConditionBuilder} but expose methods for
- * multi-table query only.
+ * Expose methods to allow to set SQL execute parameters and
+ * methods to do db jobs like query, update, delete and so on.
  *
  * @author zhangfei
  */
-public class MultiTableConditionBuilder<T extends Query> {
+public class ConditionBuilder<T extends Entity> implements BuilderSupport<T>{
     private final SQLiteDatabase database;
 
     private Class<T> clazz;
@@ -32,29 +35,22 @@ public class MultiTableConditionBuilder<T extends Query> {
     private Integer limitOffset;
     private Integer limitSize;
     private boolean distinct;
-    private String[] tableNames;
 
-    /**
-     * used in database query
-     */
-    private String[] aliasColumns;
-
-
-    public MultiTableConditionBuilder(SQLiteDatabase database) {
+    public ConditionBuilder(SQLiteDatabase database) {
         this.database = database;
     }
 
-    public MultiTableConditionBuilder<T> withTable(Class<T> tableClass) {
+    public ConditionBuilder<T> withTable(Class<T> tableClass) {
         this.clazz = tableClass;
         return this;
     }
 
-    public final MultiTableConditionBuilder<T> withColumns(String... columns) {
+    public final ConditionBuilder<T> withColumns(String... columns) {
         this.columns = columns;
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withWhere(String whereClause, Object... whereArgs) {
+    public ConditionBuilder<T> withWhere(String whereClause, Object... whereArgs) {
         this.whereClause = whereClause;
         this.whereArgs = new String[whereArgs.length];
 
@@ -70,35 +66,35 @@ public class MultiTableConditionBuilder<T extends Query> {
             } else if (arg instanceof Boolean) {
                 this.whereArgs[i] = Boolean.valueOf(arg.toString()) ? "1" : "0";
             } else {
-                throw new SQLException(arg.toString() + " is not supported as where argument in SQLite");
+                throw new SQLException(arg.toString() + " is not supported as where argument in SQLITE");
             }
         }
 
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withGroupBy(String groupBy) {
+    public ConditionBuilder<T> withGroupBy(String groupBy) {
         this.groupBy = groupBy;
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withHaving(String having) {
+    public ConditionBuilder<T> withHaving(String having) {
         this.having = having;
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withOrderBy(String orderBy) {
+    public ConditionBuilder<T> withOrderBy(String orderBy) {
         this.orderBy = orderBy;
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withLimit(int limitOffset, int limitSize) {
+    public ConditionBuilder<T> withLimit(int limitOffset, int limitSize) {
         this.limitOffset = limitOffset;
         this.limitSize = limitSize;
         return this;
     }
 
-    public MultiTableConditionBuilder<T> withDistinct(boolean distinct) {
+    public ConditionBuilder<T> withDistinct(boolean distinct) {
         this.distinct = distinct;
         return this;
     }
@@ -138,22 +134,18 @@ public class MultiTableConditionBuilder<T extends Query> {
      * @return query cursor
      */
     public Cursor applySearch() {
-        StringBuilder nameBuilder = new StringBuilder();
-        for (int i = 0; i < tableNames.length; i++) {
-            nameBuilder.append(tableNames[i]);
-
-            if (i < tableNames.length - 1) {
-                nameBuilder.append(",");
-            }
-        }
-
         String limit = null;
         if (limitOffset != null && limitSize != null) {
             limit = limitOffset + "," + limitSize;
         }
 
+        if (TextUtils.isEmpty(orderBy)) {
+            orderBy = ReflectTools.getDefaultOrderBy(clazz);
+        }
+
+        String tableName = ReflectTools.getTableName(clazz);
         String query = SQLiteQueryBuilder.buildQueryString(
-                distinct, nameBuilder.toString(), aliasColumns, whereClause,
+                distinct, tableName, columns, whereClause,
                 groupBy, having, orderBy, limit);
         return database.rawQuery(query, whereArgs);
     }
@@ -211,6 +203,7 @@ public class MultiTableConditionBuilder<T extends Query> {
     private T getContent(Cursor cursor, Class<T> tableClass) {
         try {
             T content = tableClass.newInstance();
+            content.id = cursor.getLong(0);
             content.restore(cursor, columns);
             return content;
         } catch (IllegalAccessException e) {
@@ -221,33 +214,112 @@ public class MultiTableConditionBuilder<T extends Query> {
         return null;
     }
 
-    public MultiTableConditionBuilder<T> withColumns(Class<T> clazz) {
-        this.clazz = clazz;
+    /**
+     * Apply delete with condition
+     *
+     * @return count of delete rows
+     */
+    public int applyDelete() {
+        String tableName = ReflectTools.getTableName(clazz);
+        int count = database.delete(tableName, whereClause, whereArgs);
+        if (TextUtils.isEmpty(whereClause)) {
+            resetPrimaryKeyIfNeed(tableName);
+        }
+        return count;
+    }
 
-        // read columns from class
-        Field[] fields = ReflectTools.getClassFields(clazz);
+    /**
+     * Apply delete table record
+     *
+     * @param table table object
+     * @return count of deleted row
+     */
+    public int applyDelete(T table) {
+        return applyDeleteById(table.id);
+    }
 
-        List<String> columns = new ArrayList<>();
-        List<String> aliasColumns = new ArrayList<>();
-        for (Field field : fields) {
-            // ignore _id field
-            if (field.isAnnotationPresent(ID.class)) {
-                continue;
-            }
-
-            ColumnInfo columnInfo = ReflectTools.getColumnInfo(field);
-            columns.add(columnInfo.getName());
-            aliasColumns.add(columnInfo.getAliasName());
+    /**
+     * Apply delete with id
+     *
+     * @param id primary key id of record
+     * @return count of deleted row
+     */
+    public int applyDeleteById(long id) {
+        if (id == Entity.NOT_SAVED) {
+            return 0;
         }
 
-        this.columns = columns.toArray(new String[columns.size()]);
-        this.aliasColumns = aliasColumns.toArray(new String[aliasColumns.size()]);
-        return this;
+        this.whereClause = Entity._ID + " = ?";
+        this.whereArgs = new String[]{String.valueOf(id)};
+
+        return applyDelete();
     }
 
-    public MultiTableConditionBuilder<T> withTableNames(String... tableNames) {
-        this.tableNames = tableNames;
-        return this;
+    /**
+     * Apply update record with condition
+     *
+     * @param values content values to be updated
+     * @return count of updated rows
+     */
+    public int applyUpdate(ContentValues values) {
+        if (values == null || values.size() == 0) {
+            throw new SQLiteException("ContentValues is empty, nothing can be updated");
+        }
+
+        String tableName = ReflectTools.getTableName(clazz);
+
+        try {
+            return database.update(tableName, values, whereClause, whereArgs);
+        } catch (SQLiteException e) {
+            Log.e(DBUtils.TAG, "applyUpdate() error: " + DBUtils.getTraceInfo(e));
+            return 0;
+        }
     }
 
+    /**
+     * Apply update with table object
+     *
+     * @param table table object to update
+     * @return count of updated row
+     */
+    public int applyUpdate(T table) {
+        if (table == null) {
+            throw new SQLException("table to update cannot be null");
+        }
+
+        this.whereClause = Entity._ID + " = ?";
+        this.whereArgs = new String[]{String.valueOf(table.id)};
+        ContentValues values = table.toContentValues();
+        return applyUpdate(values);
+    }
+
+    /**
+     * Reset primary key as zero when it's too large(if exceed Long.MAX_VALUE, exception will be throw)
+     *
+     * @param tableName table's name
+     */
+    private void resetPrimaryKeyIfNeed(String tableName) {
+        if (TextUtils.isEmpty(tableName)) {
+            return;
+        }
+
+        long maxLimit = Long.MAX_VALUE / 4 * 3;
+        Cursor cursor = null;
+        try {
+            cursor = database.rawQuery("SELECT * FROM sqlite_sequence WHERE name = ?", new String[]{tableName});
+            if (cursor != null && cursor.moveToNext()) {
+                long seq = cursor.getLong(1);
+
+                if (seq > maxLimit) {
+                    database.execSQL("UPDATE sqlite_sequence SET seq = 0 WHERE name = ?", new String[]{tableName});
+                }
+            }
+        } catch (Exception e) {
+            Log.e(DBUtils.TAG, "resetPrimaryKeyIfNeed() error: " + DBUtils.getTraceInfo(e));
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
 }

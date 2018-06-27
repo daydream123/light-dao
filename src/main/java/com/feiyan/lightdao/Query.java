@@ -1,4 +1,4 @@
-package com.feiyan.lightdao.sqlite;
+package com.feiyan.lightdao;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -75,7 +75,7 @@ public class Query implements Serializable {
     /**
      * Read the Content from a ContentCursor.
      */
-    void restore(Cursor cursor, String[] columns) {
+    public void restore(Cursor cursor, String[] columns) {
         List<String> columnList;
         if (columns != null) {
             columnList = Arrays.asList(columns);

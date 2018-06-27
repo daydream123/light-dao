@@ -1,4 +1,4 @@
-package com.feiyan.lightdao.sqlite;
+package com.feiyan.lightdao;
 
 import android.text.TextUtils;
 

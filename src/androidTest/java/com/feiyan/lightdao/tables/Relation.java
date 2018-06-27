@@ -1,8 +1,12 @@
 package com.feiyan.lightdao.tables;
 
+import com.feiyan.lightdao.Query;
 import com.feiyan.lightdao.annotation.Column;
-import com.feiyan.lightdao.sqlite.Query;
+import com.feiyan.lightdao.annotation.InnerJoin;
+import com.feiyan.lightdao.annotation.JoinItem;
 
+@InnerJoin(@JoinItem(firstTable = "teacher", firstColumn = "_id",
+        secondTable = "student", secondColumn = "teacher_id"))
 public class Relation extends Query {
     @Column(name = "teacher_id", aliasName = "student._id as teacher_id")
     public long teacherId;

@@ -6,12 +6,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to define Table.
- *
- * @author zhangfei
+ * It's bundled with {@link InnerJoin}
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Table {
-    String value();
+public @interface JoinItem {
+    String firstTable();
+
+    String firstColumn();
+
+    String secondTable();
+
+    String secondColumn();
 }
