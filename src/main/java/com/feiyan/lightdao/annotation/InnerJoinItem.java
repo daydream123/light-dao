@@ -7,6 +7,12 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface InnerJoin {
-    InnerJoinItem[] value() default {};
+public @interface InnerJoinItem {
+    String firstTable();
+
+    String firstColumn();
+
+    String secondTable();
+
+    String secondColumn();
 }

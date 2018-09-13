@@ -2,7 +2,7 @@ package com.feiyan.lightdao.conditionbuilder;
 
 import com.feiyan.lightdao.annotation.CrossJoin;
 import com.feiyan.lightdao.annotation.InnerJoin;
-import com.feiyan.lightdao.annotation.JoinItem;
+import com.feiyan.lightdao.annotation.InnerJoinItem;
 import com.feiyan.lightdao.annotation.LeftJoin;
 import com.feiyan.lightdao.annotation.NaturalJoin;
 
@@ -10,9 +10,9 @@ class JoinClauseBuilder {
 
     public static String buildInnerJoinClause(InnerJoin innerJoin){
         StringBuilder whereBuilder = new StringBuilder();
-        JoinItem[] items = innerJoin.value();
+        InnerJoinItem[] items = innerJoin.value();
         if (items.length == 1) {
-            JoinItem item = items[0];
+            InnerJoinItem item = items[0];
             whereBuilder.append(item.firstTable())
                     .append(" INNER JOIN ")
                     .append(item.secondTable())
@@ -26,7 +26,7 @@ class JoinClauseBuilder {
             }
 
             for (int i = 0; i < items.length; i++){
-                JoinItem item = items[i];
+                InnerJoinItem item = items[i];
 
                 if (i == 0) {
                     whereBuilder.append(item.firstTable())

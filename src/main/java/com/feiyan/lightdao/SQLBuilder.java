@@ -22,12 +22,13 @@ import java.util.Set;
  * @author zhangfei
  */
 public final class SQLBuilder {
-    private SQLBuilder() {}
+    private SQLBuilder() {
+    }
 
     /**
      * build table creation sql
      */
-    public static SQL buildTableCreateSQL(Class<? extends Entity> tableClass) {
+    public static SQL buildCreateSQL(Class<? extends Entity> tableClass) {
         final StringBuilder buffer = new StringBuilder();
         String tableName = ReflectTools.getTableName(tableClass);
         buffer.append("CREATE TABLE IF NOT EXISTS ").append(tableName);
@@ -129,7 +130,7 @@ public final class SQLBuilder {
     }
 
     /**
-     *  build sql for deleting with table class object
+     * build sql for deleting with table class object
      */
     public static <T extends Entity> SQL buildDeleteSQL(T table) {
         if (table.id == Entity.NOT_SAVED) {
@@ -140,7 +141,7 @@ public final class SQLBuilder {
     }
 
     /**
-     *  build sql for deleteing all with table class
+     * build sql for deleteing all with table class
      */
     public static <T extends Entity> SQL buildDeleteSQL(Class<T> tableClass) {
         return new SQL("DELETE FROM " + ReflectTools.getTableName(tableClass));
@@ -151,7 +152,7 @@ public final class SQLBuilder {
      */
     public static <T extends Entity> SQL buildDeleteSQL(Class<T> tableClass, long id) {
         if (id == Entity.NOT_SAVED) {
-            throw new SQLiteException("The record with id '(" + id +")' is not exist.");
+            throw new SQLiteException("The record with id '(" + id + ")' is not exist.");
         }
 
         return new SQL("DELETE FROM " + ReflectTools.getTableName(tableClass) + " WHERE " + Entity._ID + "=" + id);
@@ -257,7 +258,7 @@ public final class SQLBuilder {
             return false;
         } else if (typeClass == String.class) {
             return "";
-        } else if (typeClass == byte[].class || typeClass == Byte[].class){
+        } else if (typeClass == byte[].class || typeClass == Byte[].class) {
             return new byte[0];
         } else {
             throw new SQLiteException("type [" + typeClass.toString() + "] is not supported in SQLITE");
@@ -293,7 +294,7 @@ public final class SQLBuilder {
         return where;
     }
 
-    private static void appendDefaultValue(Column column, Field field, StringBuilder buffer){
+    private static void appendDefaultValue(Column column, Field field, StringBuilder buffer) {
         String defVal = column.defVal();
         if (!TextUtils.isEmpty(defVal)) {
             Class<?> typeClass = field.getType();

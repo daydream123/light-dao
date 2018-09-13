@@ -1,5 +1,7 @@
 package com.feiyan.lightdao;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.text.TextUtils;
 
@@ -146,6 +148,33 @@ public class ReflectTools {
             return DataType.BLOB;
         } else {
             throw new SQLiteException("field [" + field.getName() + "] is a not supported data type.");
+        }
+    }
+
+    static boolean isTableExist(SQLiteDatabase db, String tableName) {
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?", new String[]{tableName});
+            boolean hasNext = cursor.moveToNext();
+            return hasNext && cursor.getInt(0) > 0;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    static boolean isColumnExist(SQLiteDatabase db, String tableName, String columnName) {
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery("SELECT count(*) FROM sqlite_master WHERE tbl_name = ? AND (sql LIKE ? OR sql LIKE ?);",
+                    new String[]{tableName, "%(" + columnName + "%", "%, " + columnName + " %"});
+            boolean hasNext = cursor.moveToNext();
+            return hasNext && cursor.getInt(0) > 0;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 }

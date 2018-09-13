@@ -46,16 +46,4 @@ public class DBHelper extends BaseDBHelper {
         tableClasses.add(Student.class);
         tableClasses.add(Teacher.class);
     }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        super.onUpgrade(db, oldVersion, newVersion);
-
-        /* upgrade db version by version
-        if (oldVersion < VERSION) {
-            SQL sql = SQLBuilder.buildTableCreateSQL(Student.class);
-            db.execSQL(sql.getSql());
-        }
-        */
-    }
 }

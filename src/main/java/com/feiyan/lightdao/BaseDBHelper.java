@@ -1,10 +1,15 @@
 package com.feiyan.lightdao;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 
+import com.feiyan.lightdao.annotation.Column;
 import com.feiyan.lightdao.annotation.Table;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +31,7 @@ public abstract class BaseDBHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public final void onCreate(SQLiteDatabase db) {
         for (Class<? extends Entity> clazz : mTableClasses) {
             // ignore class with View annotation
             Table tableView = clazz.getAnnotation(Table.class);
@@ -35,13 +40,40 @@ public abstract class BaseDBHelper extends SQLiteOpenHelper {
             }
 
             // create table
-            db.execSQL(SQLBuilder.buildTableCreateSQL(clazz).getSql());
+            db.execSQL(SQLBuilder.buildCreateSQL(clazz).getSql());
         }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+    public final void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        autoMigrate(db, mTableClasses);
     }
+
+    private void autoMigrate(SQLiteDatabase db, List<Class<? extends Entity>> tableClasses) {
+        for (Class<? extends Entity> clazz : tableClasses) {
+            String tableName = ReflectTools.getTableName(clazz);
+            boolean exist = ReflectTools.isTableExist(db, tableName);
+            if (exist) {
+                Field[] fields = ReflectTools.getClassFields(clazz);
+                for (Field field : fields) {
+                    Column column = field.getAnnotation(Column.class);
+                    if (column == null) {
+                        continue;
+                    }
+
+                    String columnName = !TextUtils.isEmpty(column.name()) ? column.name() : field.getName();
+                    String dataType = ReflectTools.getDataTypeByField(field);
+                    boolean columnExist = ReflectTools.isColumnExist(db, tableName, columnName);
+                    if (!columnExist) {
+                        db.execSQL("ALTER TABLE " + tableName + " ADD " + columnName + " " + dataType);
+                    }
+                }
+            } else {
+                db.execSQL(SQLBuilder.buildCreateSQL(clazz).getSql());
+            }
+        }
+    }
+
+
 
 }

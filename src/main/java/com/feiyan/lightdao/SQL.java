@@ -36,34 +36,24 @@ public final class SQL {
 		return bindArgs;
 	}
 
-	public Object[] getBindArgsAsArray(boolean needConvert) {
+	public Object[] getBindArgsAsArray() {
 		if (bindArgs != null) {
-			if (needConvert) {
-				LinkedList<Object> converted = new LinkedList<>();
-				for (Object arg : bindArgs) {
-					converted.add(convertEscapeChar(arg));
-				}
-				return converted.toArray();
-			} else {
-				return bindArgs.toArray();
-			}
+			return bindArgs.toArray();
 		}
+
 		return null;
 	}
 
-	public String[] getBindArgsAsStrArray(boolean needConvert) {
+	public String[] getBindArgsAsStringArray() {
 		if (bindArgs != null) {
 			String[] strings = new String[bindArgs.size()];
 			for (int i = 0; i < bindArgs.size(); i++) {
 				Object value = bindArgs.get(i);
-				if (needConvert) {
-					strings[i] = value == null ? null : convertEscapeChar(value).toString();
-				} else {
-					strings[i] = value == null ? null : value.toString();
-				}
+				strings[i] = value == null ? null : value.toString();
 			}
 			return strings;
 		}
+
 		return null;
 	}
 

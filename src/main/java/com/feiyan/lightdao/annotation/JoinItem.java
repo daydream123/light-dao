@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * It's bundled with {@link InnerJoin}
+ * It's bundled with {@link InnerJoinItem}
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

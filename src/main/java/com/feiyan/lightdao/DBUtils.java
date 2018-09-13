@@ -94,7 +94,7 @@ public final class DBUtils {
             for (T table : tables) {
                 SQL sql = SQLBuilder.buildInsertSQL(table);
                 if (sql != null) {
-                    db.execSQL(sql.getSql(), sql.getBindArgsAsArray(false));
+                    db.execSQL(sql.getSql(), sql.getBindArgsAsArray());
                 }
             }
             db.setTransactionSuccessful();
@@ -118,7 +118,7 @@ public final class DBUtils {
             database.beginTransaction();
             ArrayList<SQL> bindArgs = batchJobs.getBatchJobs();
             for (SQL job : bindArgs) {
-                Object[] args = job.getBindArgsAsArray(false);
+                Object[] args = job.getBindArgsAsArray();
                 if (args != null && args.length > 0) {
                     database.execSQL(job.getSql(), args);
                 } else {

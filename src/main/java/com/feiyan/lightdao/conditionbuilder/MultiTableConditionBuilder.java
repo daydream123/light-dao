@@ -15,6 +15,7 @@ import com.feiyan.lightdao.Query;
 import com.feiyan.lightdao.ReflectTools;
 import com.feiyan.lightdao.ColumnInfo;
 import com.feiyan.lightdao.annotation.InnerJoin;
+import com.feiyan.lightdao.annotation.InnerJoinItem;
 import com.feiyan.lightdao.annotation.LeftJoin;
 import com.feiyan.lightdao.annotation.NaturalJoin;
 

@@ -90,10 +90,7 @@ public class Query implements Serializable {
                 continue;
             }
 
-            String columnName = column.name();
-            if (TextUtils.isEmpty(columnName)) {
-                columnName = field.getName();
-            }
+            String columnName = !TextUtils.isEmpty(column.name()) ? column.name() : field.getName();
 
             // set field value
             if (columnList.isEmpty() || columnList.contains(columnName)) {
