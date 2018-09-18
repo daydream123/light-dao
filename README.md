@@ -6,7 +6,7 @@
 最初的萌芽来自于Android Email App内部一个叫[EmailContent](https://github.com/android/platform_packages_apps_email/blob/552ef93f45b6f818bb269920c309741c51e62b1e/emailcommon/src/com/android/emailcommon/provider/EmailContent.java)的class定义。每个Table类都手动实现toContentValues()和restore(Cursor cursor)，这样可以避免重复通过Cursor拼装表对象。随后自己就想写了一个Utils类似的工具类类来提供一系列增删改查的API，当然这些API的操作对象都是table对象，随着迭代慢慢衍化如今更加友好的light-dao了。
 
 ## 下面描述下如何使用此light-dao：
-### 1. 得定义一个继承BaseDBHelper的DBHelper，类似Android SDK的做法:
+### 1. 得定义一个继承BaseDBHelper的DBHelper，大家都懂的:
 
 ```java
 public class DBHelper extends BaseDBHelper {
@@ -185,14 +185,12 @@ assertTrue(count > 0);
 ```
 
 #### 4.0 根据主键ID删除
-
 ```java
 int count = DBHelper.with(mContext).withTable(Student.class).applyDeleteById(1);
 assertTrue(count > 0);
 ```
 
 #### 4.1 删除指定的对象
-
 ```java
 DBUtils dbUtils = DBHelper.with(mContext);
 Student student = dbUtils.withTable(Student.class).applySearchById(2);
@@ -203,7 +201,6 @@ assertTrue(count > 0);
 ```
 
 #### 4.2 根据条件删除
-
 ```java
 int count = DBHelper.with(mContext).withTable(Student.class).withWhere("age>=?", 9).applyDelete();
 assertTrue(count > 0);
@@ -246,33 +243,88 @@ assertTrue(success);
 
 ```java
 // 因为跨表查询的结果来自于多个表，所以得重新定义返回结果的对象，并通过aliasName指定此字段来自于哪个表中的哪个字段
-@InnerJoin(@InnerJoinItem(firstTable = "student", firstColumn = "_id", secondTable ="teacher", secondColumn = "_id"))
 public class Relation extends Query {
-    @Column(name = "teacher_id", aliasName = "student._id as teacher_id")
-    public long teacherId;
-
-    @Column(name = "teacher_name", aliasName = "teacher.name as teacher_name")
-    public String teacherName;
-
-    @Column(name = "student_id", aliasName = "student._id as student_id")
-    public long studentId;
-
-    @Column(name = "student_name", aliasName = "student.name as student_name")
-    public String studentName;
-
-    @Column(name = "age")
-    public int studentAge;
+	@Column(name = "teacher_id", aliasName = "student._id as teacher_id")
+	public long teacherId;
+	
+	@Column(name = "teacher_name", aliasName = "teacher.name as teacher_name")
+	public String teacherName;
+	
+	@Column(name = "student_id", aliasName = "student._id as student_id")
+	public long studentId;
+	
+	@Column(name = "student_name", aliasName = "student.name as student_name")
+	public String studentName;
+	
+	@Column(name = "age")
+	public int studentAge;
 }
 
-// withColumns: 指定查询要返回的字段定义类
-// withTableNames: 指定要跨表查询的表名
 List<Relation> list = DBHelper.with(mContext)
-    .withColumns(Relation.class)
-    .withTableNames("student", "teacher")
-    .withWhere("teacher_id=student._id")
-    .applySearchAsList();
-
+        .withQuery(Relation.class)
+        .applySearchAsList();
 System.out.println(list.size());
 ```
 
->因为跨表查询需要指定便于表之间的外键关联关系，所以需要借助@InnerJoin, @CrossJoin, @LeftJoin, @RightJoin, @NaturalJoin描述他们的关联关系。其中内连接因为支持多表以上连接，所以@InnerJoin的参数是一个数组(@InnerJoinItem)，每个item描述其中两张表之间的外键关联关系。
+#### 4.5 数据库升级
+
+数据库升级其实啥也不用做，因为是自动的，因为重写了onUpgrade():
+
+```java
+@Override
+public final void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    autoMigrate(db, mTableClasses);
+}
+
+private void autoMigrate(SQLiteDatabase db, List<Class<? extends Entity>> tableClasses) {
+    for (Class<? extends Entity> clazz : tableClasses) {
+        String tableName = ReflectTools.getTableName(clazz);
+        boolean exist = ReflectTools.isTableExist(db, tableName);
+        if (exist) {
+            Field[] fields = ReflectTools.getClassFields(clazz);
+            for (Field field : fields) {
+                Column column = field.getAnnotation(Column.class);
+                if (column == null) {
+                    continue;
+                }
+
+                String columnName = !TextUtils.isEmpty(column.name()) ? column.name() : field.getName();
+                String dataType = ReflectTools.getDataTypeByField(field);
+                boolean columnExist = ReflectTools.isColumnExist(db, tableName, columnName);
+                if (!columnExist) {
+                    db.execSQL("ALTER TABLE " + tableName + " ADD " + columnName + " " + dataType);
+                }
+            }
+        } else {
+            db.execSQL(SQLBuilder.buildCreateSQL(clazz).getSql());
+        }
+    }
+}
+
+static boolean isTableExist(SQLiteDatabase db, String tableName) {
+    Cursor cursor = null;
+    try {
+        cursor = db.rawQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?", new String[]{tableName});
+        boolean hasNext = cursor.moveToNext();
+        return hasNext && cursor.getInt(0) > 0;
+    } finally {
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+}
+
+static boolean isColumnExist(SQLiteDatabase db, String tableName, String columnName) {
+    Cursor cursor = null;
+    try {
+        cursor = db.rawQuery("SELECT count(*) FROM sqlite_master WHERE tbl_name = ? AND (sql LIKE ? OR sql LIKE ?);",
+                new String[]{tableName, "%(" + columnName + "%", "%, " + columnName + " %"});
+        boolean hasNext = cursor.moveToNext();
+        return hasNext && cursor.getInt(0) > 0;
+    } finally {
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+}
+```
